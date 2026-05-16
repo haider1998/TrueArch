@@ -76,7 +76,7 @@ def test_list_frameworks_genome_filter(client):
     data = response.json()
     assert len(data) >= 5
     for fw in data:
-        assert fw["genome_dimension"] in {"LGR", "AUTOG", "CREW", "SWARM", "SEMK", "PADK"}
+        assert fw["genome_dimension"] in {"LGR", "AUTOG", "CREW", "SWARM", "SEMK", "PADK", "ADK", "PYDAI", "LANG", "LLMIND"}
 
 
 def test_list_frameworks_unknown_category_returns_empty(client):
