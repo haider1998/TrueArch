@@ -1,10 +1,10 @@
 from datetime import date, timedelta
-from typing import Dict, Any
+from typing import Optional
 
 from src.data.models import FrameworkSchema, ComputedScores
 
 class ScoringEngine:
-    def __init__(self, today: date = None):
+    def __init__(self, today: Optional[date] = None):
         # Allow injecting a specific date for testing, default to today
         self.today = today or date.today()
 
@@ -30,14 +30,15 @@ class ScoringEngine:
         # 5. Agent Compatibility (15%)
         scores.agent_compatibility = self._compute_agent_compatibility(framework)
         
-        # Calculate Overall Score (Weighted Average)
-        scores.overall = round(
+        # Calculate Overall Score (Weighted Average) — clamped to [0, 100]
+        raw_overall = (
             (scores.production_stability * 0.30) +
             (scores.ecosystem_momentum * 0.25) +
             (scores.migration_risk * 0.15) +
             (scores.governance_readiness * 0.15) +
             (scores.agent_compatibility * 0.15)
         )
+        scores.overall = float(max(0, min(100, round(raw_overall))))
         
         # Calculate Confidence Score
         scores.confidence = self._compute_confidence(framework)

@@ -1,6 +1,7 @@
 import os
+import sys
 import asyncio
-from typing import List, Optional
+from typing import Optional
 from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
 import mcp.server.stdio
@@ -28,8 +29,8 @@ def init_db():
             for fw in frameworks_db.values():
                 fw.computed_scores = engine.compute_scores(fw)
         except Exception as e:
-            # We must gracefully fail or log. MCP server runs over stdio.
-            pass
+            # Log to stderr — MCP uses stdout for protocol messages
+            print(f"[TrueArch MCP] ERROR loading framework data: {e}", file=sys.stderr)
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
@@ -66,16 +67,23 @@ async def handle_list_tools() -> list[types.Tool]:
     ]
 
 @server.call_tool()
-async def handle_call_tool(name: str, arguments: dict | None) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+async def handle_call_tool(
+    name: str,
+    arguments: Optional[dict] = None,
+) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
     """Handle tool execution requests."""
     init_db()
-    
+
+    # Guard against missing arguments
+    args = arguments or {}
+
     if name == "get_framework_score":
-        fw_id = arguments.get("framework_id")
+        fw_id = args.get("framework_id")
         if not fw_id or fw_id not in frameworks_db:
+            available = ", ".join(sorted(frameworks_db.keys()))
             return [types.TextContent(
                 type="text",
-                text=f"Framework '{fw_id}' not found. Available frameworks: {', '.join(frameworks_db.keys())}"
+                text=f"Framework '{fw_id}' not found. Available frameworks: {available}"
             )]
             
         fw = frameworks_db[fw_id]
@@ -97,18 +105,18 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[types.Text
         return [types.TextContent(type="text", text=result)]
         
     elif name == "get_recommendation":
-        category = arguments.get("category")
+        category = args.get("category")
         candidates = [fw for fw in frameworks_db.values() if fw.category == category]
         
         if not candidates:
-            cats = set(f.category for f in frameworks_db.values())
+            cats = sorted(set(f.category for f in frameworks_db.values()))
             return [types.TextContent(
                 type="text", 
                 text=f"No frameworks found for category '{category}'. Available categories: {', '.join(cats)}"
             )]
             
         # Sort by overall score
-        candidates.sort(key=lambda x: x.computed_scores.overall, reverse=True)
+        candidates.sort(key=lambda x: (x.computed_scores.overall or 0), reverse=True)
         top = candidates[0]
         
         result = (
@@ -121,13 +129,14 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[types.Text
         
         if len(candidates) > 1:
             runner_up = candidates[1]
-            result += (
-                f"Runner up: {runner_up.name} ({runner_up.computed_scores.overall}/100)\n"
-            )
+            result += f"Runner up: {runner_up.name} ({runner_up.computed_scores.overall}/100)\n"
             
         return [types.TextContent(type="text", text=result)]
-        
-    raise ValueError(f"Unknown tool: {name}")
+
+    return [types.TextContent(
+        type="text",
+        text=f"Unknown tool: '{name}'. Available tools: get_framework_score, get_recommendation"
+    )]
 
 async def main():
     # Run the server using stdin/stdout streams
