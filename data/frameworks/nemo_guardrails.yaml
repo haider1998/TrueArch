@@ -1,0 +1,103 @@
+schema_version: "1.0"
+
+id: "nemo_guardrails"
+name: "NeMo Guardrails"
+category: "guardrails"
+subcategory: "dialog-routing-framework"
+url: "https://github.com/NVIDIA/NeMo-Guardrails"
+docs_url: "https://docs.nvidia.com/nemo/guardrails/"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "0.21.0"
+latest_stable_released: "2026-03-12"
+
+genome_dimension:
+  key: "D4_compliance"
+  value: "NEMO"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.80
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 6100                    # Verified May 2026
+    star_growth_30d_pct: 2.5
+    commits_last_90d: 90
+    commits_prev_90d: 80
+    merged_prs_per_30d: 15
+    avg_days_to_merge: 5.0
+    job_postings_30d: 120
+    so_questions_30d: 50
+    so_questions_prev_30d: 40
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 2                # Guardrails AI, LlamaGuard
+    public_api_methods: 35
+    migration_guide_count: 1
+    community_migrations: 3
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 5
+    doc_completeness_rating: 85
+    hipaa_deployments: 2
+    soc2_deployments: 5
+    gdpr_deployments: 5
+    other_compliance_deployments: 2
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 30           # Manages dialog state internally
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with:
+  - framework: "langchain"
+    strength: 0.90
+    notes: "Native LCEL and LangGraph support introduced in v0.21.0"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/NVIDIA/NeMo-Guardrails"
+  notes: |
+    Verified May 2026: 6,100 GitHub stars, version 0.21.0.
+    NVIDIA backed. Uses Colang format for dialog definition.
+    Primary recommendation for topical/conversational guardrails (e.g. "don't talk about politics").
+    Use Guardrails AI instead for structural/JSON validation.

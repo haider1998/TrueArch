@@ -1,0 +1,105 @@
+schema_version: "1.0"
+
+id: "mongodb"
+name: "MongoDB"
+category: "db"
+subcategory: "document-vector-database"
+url: "https://github.com/mongodb/mongo"
+docs_url: "https://www.mongodb.com/docs/"
+license: "SSPL"
+primary_language: "C++"
+latest_stable_version: "8.3"
+latest_stable_released: "2026-05-07"
+
+genome_dimension:
+  key: "D7_store"
+  value: "MONGO"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.95
+    open_security_advisories: 0
+    incident_rate: 0.01
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 28000                   # Verified May 2026
+    star_growth_30d_pct: 0.8
+    commits_last_90d: 400
+    commits_prev_90d: 380
+    merged_prs_per_30d: 50
+    avg_days_to_merge: 4.0
+    job_postings_30d: 6000
+    so_questions_30d: 800
+    so_questions_prev_30d: 780
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                # PostgreSQL, Couchbase, DynamoDB
+    public_api_methods: 150
+    migration_guide_count: 15
+    community_migrations: 40
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 2
+    doc_completeness_rating: 95
+    hipaa_deployments: 1000
+    soc2_deployments: 2000
+    gdpr_deployments: 2000
+    other_compliance_deployments: 1000
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "wrapper_available"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 90
+    multiagent_support: "none"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with:
+  - framework: "langchain"
+    strength: 0.95
+    notes: "Native integrations, including new LangGraph.js support"
+  - framework: "llamaindex"
+    strength: 0.90
+    notes: "Native integration for Atlas Vector Search"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/mongodb/mongo"
+  notes: |
+    Verified May 2026: 28,000 GitHub stars, version 8.3.
+    Atlas Vector Search makes it a very strong hybrid store for document + vector retrieval.
+    Excellent governance scores.

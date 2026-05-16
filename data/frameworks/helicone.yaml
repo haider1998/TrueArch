@@ -1,0 +1,102 @@
+schema_version: "1.0"
+
+id: "helicone"
+name: "Helicone"
+category: "observability"
+subcategory: "llm-observability-platform"
+url: "https://github.com/Helicone/helicone"
+docs_url: "https://docs.helicone.ai/"
+license: "Apache-2.0"
+primary_language: "TypeScript"
+latest_stable_version: "v2025.08.21"      # Versioning uses date-based tags on GitHub
+latest_stable_released: "2026-05-01"
+
+genome_dimension:
+  key: "D9_observability"
+  value: "HELIC"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.88
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 5700                    # Verified May 2026
+    star_growth_30d_pct: 3.0
+    commits_last_90d: 250
+    commits_prev_90d: 200
+    merged_prs_per_30d: 40
+    avg_days_to_merge: 2.0
+    job_postings_30d: 80
+    so_questions_30d: 40
+    so_questions_prev_30d: 35
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                # LangSmith, Langfuse, OpenTelemetry
+    public_api_methods: 30
+    migration_guide_count: 2
+    community_migrations: 5
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 3
+    doc_completeness_rating: 85
+    hipaa_deployments: 5
+    soc2_deployments: 20
+    gdpr_deployments: 15
+    other_compliance_deployments: 5
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 0            # Observability layer
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with: []
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "opentelemetry"
+    effort: 0.40
+    notes: "Switching from Helicone proxy to native OTEL tracing"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/Helicone/helicone"
+  notes: |
+    Verified May 2026: 5,700 GitHub stars.
+    Strong open-source alternative to LangSmith.
+    Excellent for teams needing a simple proxy-based integration (1-line code change).

@@ -1,0 +1,105 @@
+schema_version: "1.0"
+
+id: "guardrails_ai"
+name: "Guardrails AI"
+category: "guardrails"
+subcategory: "validation-framework"
+url: "https://github.com/guardrails-ai/guardrails"
+docs_url: "https://www.guardrailsai.com/docs/"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "0.10.1"
+latest_stable_released: "2026-05-12"
+
+genome_dimension:
+  key: "D4_compliance"
+  value: "GDRAI"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 2
+    issue_resolution_ratio: 0.85
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 6900                    # Verified May 2026
+    star_growth_30d_pct: 4.0
+    commits_last_90d: 110
+    commits_prev_90d: 90
+    merged_prs_per_30d: 20
+    avg_days_to_merge: 3.5
+    job_postings_30d: 150
+    so_questions_30d: 60
+    so_questions_prev_30d: 40
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                # NeMo Guardrails, Outlines, Instructor
+    public_api_methods: 45
+    migration_guide_count: 1
+    community_migrations: 4
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 4
+    doc_completeness_rating: 80
+    hipaa_deployments: 5
+    soc2_deployments: 10
+    gdpr_deployments: 8
+    other_compliance_deployments: 3
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 0            # Validation layer, not state
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with:
+  - framework: "pydantic_ai"
+    strength: 0.85
+    notes: "Both rely heavily on Pydantic schemas; natural fit for advanced validation"
+  - framework: "langchain"
+    strength: 0.90
+    notes: "Native LCEL integration"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/guardrails-ai/guardrails"
+  notes: |
+    Verified May 2026: 6,900 GitHub stars, version 0.10.1.
+    Primary recommendation for schema validation and output formatting enforcement in Python.
+    Stronger for structural validation, whereas NeMo is stronger for conversational dialog rails.

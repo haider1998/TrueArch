@@ -1,0 +1,105 @@
+schema_version: "1.0"
+
+id: "chroma"
+name: "Chroma"
+category: "vector-db"
+subcategory: "local-first-vector-db"
+url: "https://github.com/chroma-core/chroma"
+docs_url: "https://docs.trychroma.com/"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "1.5.9"
+latest_stable_released: "2026-05-05"
+
+genome_dimension:
+  key: "D7_store"
+  value: "CHROMA"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 2
+    issue_resolution_ratio: 0.80
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 26000                   # Verified May 2026
+    star_growth_30d_pct: 1.5
+    commits_last_90d: 120
+    commits_prev_90d: 100
+    merged_prs_per_30d: 15
+    avg_days_to_merge: 4.5
+    job_postings_30d: 350
+    so_questions_30d: 120
+    so_questions_prev_30d: 110
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3
+    public_api_methods: 40
+    migration_guide_count: 2
+    community_migrations: 15
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 5
+    doc_completeness_rating: 80
+    hipaa_deployments: 2
+    soc2_deployments: 5
+    gdpr_deployments: 5
+    other_compliance_deployments: 2
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 40
+    multiagent_support: "none"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with:
+  - framework: "langchain"
+    strength: 0.90
+    notes: "Native integration available"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "qdrant"
+    effort: 0.30
+    notes: "Common migration path for scaling out of local/dev environments"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/chroma-core/chroma"
+  notes: |
+    Verified May 2026: 26,000 GitHub stars, version 1.5.9.
+    Excellent for local development, prototyping, and small deployments.
+    Not the primary recommendation for high-scale or enterprise-grade distributed deployments (prefer Qdrant or Pinecone).

@@ -1,0 +1,108 @@
+schema_version: "1.0"
+
+id: "pinecone"
+name: "Pinecone"
+category: "vector-db"
+subcategory: "managed-vector-db"
+url: "https://www.pinecone.io/"
+docs_url: "https://docs.pinecone.io/"
+license: "proprietary"
+primary_language: "Multi"
+latest_stable_version: "managed"
+latest_stable_released: "2026-05-01"
+
+genome_dimension:
+  key: "D7_store"
+  value: "PNCN"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.95
+    open_security_advisories: 0
+    incident_rate: 0.01
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 0                       # Proprietary managed service; stars N/A
+    star_growth_30d_pct: 0
+    commits_last_90d: 0
+    commits_prev_90d: 0
+    merged_prs_per_30d: 0
+    avg_days_to_merge: 0
+    job_postings_30d: 1400                # Very high market demand
+    so_questions_30d: 350
+    so_questions_prev_30d: 320
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                # Qdrant, Weaviate, Milvus
+    public_api_methods: 30
+    migration_guide_count: 5
+    community_migrations: 10
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 1
+    doc_completeness_rating: 95
+    hipaa_deployments: 40
+    soc2_deployments: 100
+    gdpr_deployments: 80
+    other_compliance_deployments: 20
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 50
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with:
+  - framework: "langchain"
+    strength: 0.95
+    notes: "Official partner integration"
+  - framework: "llamaindex"
+    strength: 0.95
+    notes: "Official partner integration"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "qdrant"
+    effort: 0.40
+    notes: "Requires exporting and re-indexing data"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://www.pinecone.io/"
+  notes: |
+    Pinecone is the default managed vector database recommendation.
+    Strongest for enterprise compliance (SOC2, HIPAA).
+    No GitHub stars as it is a closed-source SaaS product.

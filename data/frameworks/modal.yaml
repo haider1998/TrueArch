@@ -1,0 +1,105 @@
+schema_version: "1.0"
+
+id: "modal"
+name: "Modal"
+category: "deployment"
+subcategory: "serverless-gpu-platform"
+url: "https://modal.com/"
+docs_url: "https://modal.com/docs"
+license: "proprietary"
+primary_language: "Python"
+latest_stable_version: "1.4.2"            # Client SDK version
+latest_stable_released: "2026-04-16"
+
+genome_dimension:
+  key: "D10_deployment"
+  value: "MODAL"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.90
+    open_security_advisories: 0
+    incident_rate: 0.02
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 1200                    # examples repo; platform is SaaS
+    star_growth_30d_pct: 3.0
+    commits_last_90d: 80
+    commits_prev_90d: 70
+    merged_prs_per_30d: 10
+    avg_days_to_merge: 2.0
+    job_postings_30d: 250
+    so_questions_30d: 90
+    so_questions_prev_30d: 80
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                # Fly.io, Baseten, AWS SageMaker
+    public_api_methods: 50
+    migration_guide_count: 3
+    community_migrations: 15
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 2
+    doc_completeness_rating: 95
+    hipaa_deployments: 5
+    soc2_deployments: 20
+    gdpr_deployments: 15
+    other_compliance_deployments: 5
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 30           # Volumes and Dicts exist, but ephemeral compute is the core
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues: []
+
+compatible_with:
+  - framework: "fastapi"
+    strength: 0.95
+    notes: "Modal supports exposing FastAPI apps natively via webhooks"
+
+conflicts_with: []
+
+supersedes:
+  - framework: "aws_lambda"
+    confidence: 0.85
+    notes: "For GPU-accelerated and long-running AI workloads, Modal completely supersedes Lambda"
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://modal.com/"
+  notes: |
+    Verified May 2026: SDK v1.4.2.
+    Primary recommendation for deploying GPU-heavy or data-intensive Python AI workloads.
+    Excellent developer experience for Python shops.

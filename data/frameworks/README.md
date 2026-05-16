@@ -19,20 +19,20 @@
 | Qdrant | `qdrant.yaml` | Vector DB | ✅ Curated | 2026-05-16 |
 | Redis | `redis.yaml` | Memory Layer | ✅ Curated | 2026-05-16 |
 | OpenTelemetry | `opentelemetry.yaml` | Observability | ✅ Curated | 2026-05-16 |
-| Pinecone | `pinecone.yaml` | Vector DB | ⬜ Pending | — |
-| Chroma | `chroma.yaml` | Vector DB | ⬜ Pending | — |
-| Weaviate | `weaviate.yaml` | Vector DB | ⬜ Pending | — |
-| PostgreSQL+pgvector | `postgresql_pgvector.yaml` | DB+Vector | ⬜ Pending | — |
-| Supabase | `supabase.yaml` | DB+Vector | ⬜ Pending | — |
-| LangSmith | `langsmith.yaml` | Observability | ⬜ Pending | — |
-| Helicone | `helicone.yaml` | Observability | ⬜ Pending | — |
-| Guardrails AI | `guardrails_ai.yaml` | Safety | ⬜ Pending | — |
-| NeMo Guardrails | `nemo_guardrails.yaml` | Safety | ⬜ Pending | — |
-| Modal | `modal.yaml` | Deployment | ⬜ Pending | — |
-| Fly.io | `flyio.yaml` | Deployment | ⬜ Pending | — |
-| MongoDB | `mongodb.yaml` | DB | ⬜ Pending | — |
-| MCP SDK (Python) | `mcp_sdk_python.yaml` | Protocol | ⬜ Pending | — |
-| A2A Protocol | `a2a.yaml` | Protocol | ⬜ Pending | — |
+| Pinecone | `pinecone.yaml` | Vector DB | ✅ Curated | 2026-05-16 |
+| Chroma | `chroma.yaml` | Vector DB | ✅ Curated | 2026-05-16 |
+| Weaviate | `weaviate.yaml` | Vector DB | ✅ Curated | 2026-05-16 |
+| PostgreSQL+pgvector | `postgresql_pgvector.yaml` | DB+Vector | ✅ Curated | 2026-05-16 |
+| Supabase | `supabase.yaml` | DB+Vector | ✅ Curated | 2026-05-16 |
+| LangSmith | `langsmith.yaml` | Observability | ✅ Curated | 2026-05-16 |
+| Helicone | `helicone.yaml` | Observability | ✅ Curated | 2026-05-16 |
+| Guardrails AI | `guardrails_ai.yaml` | Safety | ✅ Curated | 2026-05-16 |
+| NeMo Guardrails | `nemo_guardrails.yaml` | Safety | ✅ Curated | 2026-05-16 |
+| Modal | `modal.yaml` | Deployment | ✅ Curated | 2026-05-16 |
+| Fly.io | `flyio.yaml` | Deployment | ✅ Curated | 2026-05-16 |
+| MongoDB | `mongodb.yaml` | DB | ✅ Curated | 2026-05-16 |
+| MCP SDK (Python) | `mcp_sdk_python.yaml` | Protocol | ✅ Curated | 2026-05-16 |
+| A2A Protocol | `a2a.yaml` | Protocol | ✅ Curated | 2026-05-16 |
 
 ## Schema Reference
 
