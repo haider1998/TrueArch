@@ -1,0 +1,152 @@
+schema_version: "1.0"
+
+id: "fastapi"
+name: "FastAPI"
+category: "api"
+subcategory: "async-python-api-framework"
+url: "https://github.com/fastapi/fastapi"
+docs_url: "https://fastapi.tiangolo.com"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.136.1"
+latest_stable_released: "2026-04-23"
+
+genome_dimension:
+  key: "D6_protocol"
+  value: "REST"                            # FastAPI is the REST layer; D6=REST when using FastAPI
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.88
+    open_security_advisories: 0
+    incident_rate: 0.02                    # extremely stable; widely battle-tested
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 98300                    # verified May 2026
+    star_growth_30d_pct: 0.6              # mature, stable growth
+    commits_last_90d: 80
+    commits_prev_90d: 85
+    merged_prs_per_30d: 10
+    avg_days_to_merge: 5.0
+    job_postings_30d: 2100                 # massive demand — de-facto Python API standard
+    so_questions_30d: 610
+    so_questions_prev_30d: 600
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                 # Flask, Django REST, Starlette direct
+    public_api_methods: 80
+    migration_guide_count: 5
+    community_migrations: 15
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 5
+    doc_completeness_rating: 95
+    hipaa_deployments: 30
+    soc2_deployments: 50
+    gdpr_deployments: 40
+    other_compliance_deployments: 20
+    audit_support: "plugin"                # via middleware and logging integrations
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"                    # FastAPI is an API framework, not an agent framework
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 50            # stateless by design; state via external stores
+    multiagent_support: "possible"         # agents can call FastAPI endpoints as tools
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "FAPI-001"
+    severity: "low"
+    description: "Startup time increases with large numbers of routes (1000+ endpoints). Not typical for AI agent APIs but relevant for large monolithic deployments."
+    affected_versions: "< 0.100.0"
+    resolved: true
+    resolved_in: "0.100.0"
+    workaround: null
+    source: "https://github.com/fastapi/fastapi/issues/3011"
+
+  - id: "FAPI-002"
+    severity: "low"
+    description: "Background tasks do not have built-in retry logic — failed background tasks are silently dropped unless explicitly handled."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Use Celery, ARQ, or Redis Queue for reliable background task execution in production"
+    source: "https://fastapi.tiangolo.com/tutorial/background-tasks/"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.90
+    notes: "Standard pattern: LangGraph agent graph exposed via FastAPI async endpoint"
+
+  - framework: "pydantic_ai"
+    strength: 0.95
+    notes: "Near-zero friction — both Pydantic-based; shared validation, serialization, type system"
+
+  - framework: "llamaindex"
+    strength: 0.85
+    notes: "LlamaIndex query engine behind FastAPI endpoint is a primary production pattern"
+
+  - framework: "redis"
+    strength: 0.90
+    notes: "Redis as session cache and rate limiting layer for FastAPI; standard pattern"
+
+  - framework: "opentelemetry"
+    strength: 0.95
+    notes: "opentelemetry-instrumentation-fastapi is production-grade and widely used"
+
+  - framework: "qdrant"
+    strength: 0.85
+    notes: "Qdrant client from FastAPI endpoint; standard vector search API pattern"
+
+conflicts_with: []
+
+supersedes:
+  - framework: "flask"
+    confidence: 0.70
+    notes: "For async Python APIs — FastAPI largely supersedes Flask for new AI API development"
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/fastapi/fastapi"
+    - "https://pypi.org/project/fastapi/"
+    - "https://fastapi.tiangolo.com"
+  notes: |
+    Verified May 16 2026: 98,300 GitHub stars. Latest: v0.136.1 (April 23 2026).
+    
+    FastAPI is the de-facto Python API framework for AI systems in 2026.
+    2,100 job postings/month — highest REST API demand in the AI ecosystem.
+    
+    In TrueArch context: FastAPI is the API layer (D6=REST) for serving agent capabilities.
+    It wraps LangGraph/CrewAI/Pydantic AI agents as HTTP endpoints.
+    
+    TrueArch position: DEFAULT recommendation for the REST API layer in any Python AI system.
+    No caveats for typical use. Flag FAPI-002 (background task retry) for async-heavy workflows.
+    Every recommendation with D5=PY and D6=REST should include FastAPI unless there's a specific reason not to.

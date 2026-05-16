@@ -11,13 +11,14 @@
 | LangGraph | `langgraph.yaml` | Orchestration | ✅ Curated | 2026-05-16 |
 | CrewAI | `crewai.yaml` | Orchestration | ✅ Curated | 2026-05-16 |
 | LangChain | `langchain.yaml` | Orchestration | ✅ Curated | 2026-05-16 |
+| AutoGen | `autogen.yaml` | Orchestration | ✅ Curated | 2026-05-16 |
+| Google ADK | `google_adk.yaml` | Orchestration | ✅ Curated | 2026-05-16 |
+| Pydantic AI | `pydantic_ai.yaml` | Orchestration | ✅ Curated | 2026-05-16 |
+| LlamaIndex | `llamaindex.yaml` | RAG | ✅ Curated | 2026-05-16 |
+| FastAPI | `fastapi.yaml` | API | ✅ Curated | 2026-05-16 |
 | Qdrant | `qdrant.yaml` | Vector DB | ✅ Curated | 2026-05-16 |
 | Redis | `redis.yaml` | Memory Layer | ✅ Curated | 2026-05-16 |
 | OpenTelemetry | `opentelemetry.yaml` | Observability | ✅ Curated | 2026-05-16 |
-| AutoGen | `autogen.yaml` | Orchestration | ⬜ Pending | — |
-| Google ADK | `google_adk.yaml` | Orchestration | ⬜ Pending | — |
-| Pydantic AI | `pydantic_ai.yaml` | Orchestration | ⬜ Pending | — |
-| LlamaIndex | `llamaindex.yaml` | RAG | ⬜ Pending | — |
 | Pinecone | `pinecone.yaml` | Vector DB | ⬜ Pending | — |
 | Chroma | `chroma.yaml` | Vector DB | ⬜ Pending | — |
 | Weaviate | `weaviate.yaml` | Vector DB | ⬜ Pending | — |
@@ -25,7 +26,6 @@
 | Supabase | `supabase.yaml` | DB+Vector | ⬜ Pending | — |
 | LangSmith | `langsmith.yaml` | Observability | ⬜ Pending | — |
 | Helicone | `helicone.yaml` | Observability | ⬜ Pending | — |
-| FastAPI | `fastapi.yaml` | API | ⬜ Pending | — |
 | Guardrails AI | `guardrails_ai.yaml` | Safety | ⬜ Pending | — |
 | NeMo Guardrails | `nemo_guardrails.yaml` | Safety | ⬜ Pending | — |
 | Modal | `modal.yaml` | Deployment | ⬜ Pending | — |

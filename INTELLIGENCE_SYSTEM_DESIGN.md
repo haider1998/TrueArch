@@ -565,10 +565,10 @@ Before writing any production code, the following conceptual designs must be com
 - [x] Day 1 governance features scoped → `INTELLIGENCE_SYSTEM_DESIGN.md` Section 8.2
 
 ### Telemetry Design
-- [ ] Data minimization policy written
-- [ ] Opt-in consent flow designed
-- [ ] Anonymization approach chosen
-- [x] Cold start data sourcing plan finalized → `data/frameworks/` (6 curated, 19 pending)
+- [x] Data minimization policy written → `TELEMETRY_POLICY.md` (3-tier model, Tier 1 opt-out, Tier 2 opt-in)
+- [x] Opt-in consent flow designed → `TELEMETRY_POLICY.md` (MCP first-run, web UI, outcome submission)
+- [x] Anonymization approach chosen → `TELEMETRY_POLICY.md` (24h session hash rotation, week-level timestamps, genome short-form only)
+- [x] Cold start data sourcing plan finalized → `data/frameworks/` (11 curated, 14 pending)
 
 ### Architecture Genome Design
 - [x] All dimensions defined — 10 dimensions (7 core + 3 extended) → `GENOME_TAXONOMY.md`

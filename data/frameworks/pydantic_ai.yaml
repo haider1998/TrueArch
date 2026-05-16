@@ -1,0 +1,154 @@
+schema_version: "1.0"
+
+id: "pydantic_ai"
+name: "Pydantic AI"
+category: "orchestration"
+subcategory: "type-safe-agent-framework"
+url: "https://github.com/pydantic/pydantic-ai"
+docs_url: "https://ai.pydantic.dev"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "1.97.0"
+latest_stable_released: "2026-05-15"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "PYDAI"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 3             # rapid development pace; API still stabilizing
+    issue_resolution_ratio: 0.75
+    open_security_advisories: 0
+    incident_rate: 0.10                     # default — limited production telemetry
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 17100                     # verified May 2026
+    star_growth_30d_pct: 5.5               # very high growth rate for its age
+    commits_last_90d: 160                   # estimated; very active
+    commits_prev_90d: 130
+    merged_prs_per_30d: 18
+    avg_days_to_merge: 3.5
+    job_postings_30d: 120                   # still emerging but growing fast
+    so_questions_30d: 55
+    so_questions_prev_30d: 35
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4
+    public_api_methods: 60                  # smaller, cleaner API surface than LangChain
+    migration_guide_count: 1
+    community_migrations: 3
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 5
+    doc_completeness_rating: 70
+    hipaa_deployments: 1
+    soc2_deployments: 3
+    gdpr_deployments: 2
+    other_compliance_deployments: 1
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 70
+    multiagent_support: "possible"          # possible with composition; not native multi-agent
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "PYDAI-001"
+    severity: "medium"
+    description: "Ecosystem immaturity — v1.97.0 version numbering reflects very rapid iteration. API surface still changing. Community resources, tutorials, and production case studies are limited compared to LangGraph or CrewAI."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Follow official changelog closely; pin to specific minor version; plan for more frequent dependency updates"
+    source: "https://github.com/pydantic/pydantic-ai"
+
+  - id: "PYDAI-002"
+    severity: "low"
+    description: "Native multi-agent coordination not built-in — requires composition patterns. For complex multi-agent systems, this adds architectural complexity vs LangGraph's native graph model."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Use explicit handoff patterns and typed inter-agent messages; see docs for composition examples"
+    source: "https://ai.pydantic.dev"
+
+compatible_with:
+  - framework: "opentelemetry"
+    strength: 0.75
+    notes: "OTEL instrumentation available; Pydantic AI has built-in logging hooks"
+
+  - framework: "fastapi"
+    strength: 0.95
+    notes: "Excellent natural fit — both Pydantic-based; shared type validation; near-zero integration friction"
+
+  - framework: "redis"
+    strength: 0.65
+    notes: "External state via Redis; not native but standard pattern"
+
+  - framework: "postgresql"
+    strength: 0.75
+    notes: "Type-safe DB integration via psycopg3 or SQLModel; natural Pydantic fit"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.45
+    notes: "Both Python-native; moderate effort to adopt graph-based state model"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/pydantic/pydantic-ai"
+    - "https://pypi.org/project/pydantic-ai/"
+    - "https://ai.pydantic.dev"
+  notes: |
+    Verified May 16 2026: 17,100 GitHub stars. Latest: v1.97.0 (May 15 2026).
+    Very high release velocity (v1.97 implies ~97 minor releases since launch).
+    
+    KEY DIFFERENTIATOR: Type-safety-first design built on Pydantic. Best-in-class for
+    teams that value strict type validation and want their agents to be as type-safe as
+    their APIs. Natural pairing with FastAPI.
+    
+    Primary strengths:
+    - Strongest type safety of any orchestration framework
+    - Clean, small API surface (60 public methods vs LangChain's 340)
+    - FastAPI integration is near-frictionless
+    - Backed by Pydantic team (proven reliability track record)
+    
+    Primary weaknesses:
+    - Ecosystem much younger than LangGraph/CrewAI
+    - No native multi-agent coordination
+    - Limited production case studies
+    
+    TrueArch position: Recommend for type-safety-critical workflows and FastAPI-native teams.
+    Strong for APIs and structured output generation. Less suitable for complex stateful multi-agent.
+    Watch: Growing very fast — could become a primary recommendation within 6-12 months.

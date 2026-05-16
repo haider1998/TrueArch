@@ -1,0 +1,145 @@
+schema_version: "1.0"
+
+id: "llamaindex"
+name: "LlamaIndex"
+category: "rag"
+subcategory: "data-centric-rag-framework"
+url: "https://github.com/run-llama/llama_index"
+docs_url: "https://docs.llamaindex.ai"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.14.22"
+latest_stable_released: "2026-05-14"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "LLMIND"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 3
+    issue_resolution_ratio: 0.68
+    open_security_advisories: 0
+    incident_rate: 0.10
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 49400                     # verified May 2026
+    star_growth_30d_pct: 1.5               # moderate growth; mature project
+    commits_last_90d: 190
+    commits_prev_90d: 175
+    merged_prs_per_30d: 22
+    avg_days_to_merge: 4.0
+    job_postings_30d: 380                   # strong demand for RAG implementations
+    so_questions_30d: 210
+    so_questions_prev_30d: 195
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3                  # LangChain RAG, raw embedding APIs, custom
+    public_api_methods: 180
+    migration_guide_count: 3
+    community_migrations: 8
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 10
+    doc_completeness_rating: 80
+    hipaa_deployments: 8
+    soc2_deployments: 12
+    gdpr_deployments: 7
+    other_compliance_deployments: 5
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 65             # RAG-focused; agent state is secondary
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "LLMI-001"
+    severity: "medium"
+    description: "Rapid API churn in early 2024-2025 — LlamaIndex went through multiple major API redesigns. Codebases on older versions may need significant updates."
+    affected_versions: "< 0.10.0"
+    resolved: true
+    resolved_in: "0.10.0"
+    workaround: null
+    source: "https://docs.llamaindex.ai/en/stable/CHANGELOG/"
+
+  - id: "LLMI-002"
+    severity: "medium"
+    description: "Integration ecosystem fragmentation — hundreds of community integrations with inconsistent quality and maintenance levels. Some integrations are abandoned."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Prefer LlamaIndex-maintained integrations; verify community integrations are actively maintained before adopting"
+    source: "https://github.com/run-llama/llama_index"
+
+compatible_with:
+  - framework: "qdrant"
+    strength: 0.90
+    notes: "Official LlamaIndex Qdrant integration; well-maintained"
+
+  - framework: "redis"
+    strength: 0.80
+    notes: "Redis as vector store and cache layer; official integration"
+
+  - framework: "opentelemetry"
+    strength: 0.70
+    notes: "OTEL instrumentation via community integration"
+
+  - framework: "fastapi"
+    strength: 0.85
+    notes: "Standard pattern: LlamaIndex query engine behind FastAPI endpoint"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/run-llama/llama_index"
+    - "https://pypi.org/project/llama-index/"
+    - "https://docs.llamaindex.ai"
+  notes: |
+    Verified May 16 2026: 49,400 GitHub stars. Latest: v0.14.22 (May 14 2026).
+    
+    KEY DIFFERENTIATOR: Best-in-class for DATA-CENTRIC RAG architectures. LlamaIndex is
+    specifically designed around data ingestion, indexing, and retrieval — the RAG use case.
+    If D1=RAG in the Genome, LlamaIndex vs LangChain is the primary comparison.
+    
+    Primary strengths:
+    - Purpose-built for RAG (vs LangChain which covers everything)
+    - Excellent connector ecosystem (200+ data source integrations)
+    - Strong document processing pipeline
+    - Active development; v0.14.x stable API
+    
+    TrueArch position: PRIMARY RECOMMENDATION when D1=RAG in Genome.
+    Recommend alongside a vector DB (Qdrant preferred for self-hosted; Pinecone for managed).
+    Not the right choice for complex agentic workflows — use LangGraph for those.

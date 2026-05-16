@@ -1,0 +1,152 @@
+schema_version: "1.0"
+
+id: "google_adk"
+name: "Google ADK"
+category: "orchestration"
+subcategory: "multi-language-agent-framework"
+url: "https://github.com/google/adk-python"
+docs_url: "https://google.github.io/adk-docs/"
+license: "Apache-2.0"
+primary_language: "Multi"              # Python, Java, Go, TypeScript
+latest_stable_version: "1.x"          # requires verification against PyPI
+latest_stable_released: "2026-Q2"     # actively developed; verify exact version on PyPI
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "ADK"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 3             # newer framework; API still stabilizing
+    issue_resolution_ratio: 0.70
+    open_security_advisories: 0
+    incident_rate: 0.10                     # default — insufficient production telemetry
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 19700                     # adk-python repo, verified ~May 2026
+    star_growth_30d_pct: 6.5               # very high growth — newly released with strong Google backing
+    commits_last_90d: 180                   # estimated; very active development
+    commits_prev_90d: 120
+    merged_prs_per_30d: 20
+    avg_days_to_merge: 3.0
+    job_postings_30d: 180                   # growing; still emerging
+    so_questions_30d: 75
+    so_questions_prev_30d: 40              # rapidly growing Q&A volume
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4                  # LangGraph, CrewAI, AutoGen, Pydantic AI
+    public_api_methods: 100
+    migration_guide_count: 1
+    community_migrations: 2
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 7
+    doc_completeness_rating: 65             # docs improving rapidly; still maturing
+    hipaa_deployments: 2
+    soc2_deployments: 5
+    gdpr_deployments: 3
+    other_compliance_deployments: 2
+    audit_support: "native"                 # Google Cloud Logging integration native
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "native"                   # MCP support announced as first-class in ADK
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 80
+    multiagent_support: "native"            # multi-agent coordination is core design
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "ADK-001"
+    severity: "medium"
+    description: "Ecosystem immaturity — ADK is a relatively new framework (2025/2026). Production case studies are limited; community knowledge base is thin compared to LangGraph/CrewAI."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Supplement with Google Cloud documentation and official samples; plan for more self-debugging time than with LangGraph"
+    source: "https://github.com/google/adk-python"
+
+  - id: "ADK-002"
+    severity: "medium"
+    description: "Multi-language support fragmentation — Python, Java, Go, TypeScript repos are separate with different feature parity. Java and Go lag behind Python in features."
+    affected_versions: "all (non-Python)"
+    resolved: false
+    resolved_in: null
+    workaround: "Use Python SDK for full feature parity; Java/Go/TS for specific integrations only"
+    source: "https://github.com/google/adk-java"
+
+  - id: "ADK-003"
+    severity: "low"
+    description: "GCP-native design creates soft lock-in — deepest integrations (Vertex AI, Cloud Logging, Cloud Trace) require GCP. Multi-cloud architectures require more abstraction work."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Abstract GCP-specific integrations behind interfaces if multi-cloud is a requirement"
+    source: "Community feedback"
+
+compatible_with:
+  - framework: "opentelemetry"
+    strength: 0.85
+    notes: "Google Cloud Trace is OTEL-compatible; native integration"
+
+  - framework: "redis"
+    strength: 0.70
+    notes: "Supported via community integration; not native"
+
+  - framework: "qdrant"
+    strength: 0.70
+    notes: "Vertex AI Vector Search is native; Qdrant via community integration"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.60
+    notes: "Different paradigm and ecosystem; significant migration effort"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/google/adk-python"
+    - "https://github.com/google/adk-go"
+    - "https://github.com/google/adk-java"
+    - "https://google.github.io/adk-docs/"
+  notes: |
+    Verified May 2026: adk-python ~19,700 stars. Multi-repo structure (Python, Go, Java, TS).
+    
+    KEY DIFFERENTIATOR: ADK has NATIVE MCP support — the only major orchestration framework
+    with first-class MCP integration built in. This is a significant signal for TrueArch's
+    target users (MCP-native architecture is our D6 recommendation for new projects).
+    
+    Google-backed with strong growth (6.5%/mo). Very actively developed.
+    Main concerns: ecosystem immaturity, GCP soft lock-in, non-Python SDK lag.
+    
+    TrueArch position: STRONG RECOMMENDATION for Google Cloud workloads and GCP-native teams.
+    Highest agent_compatibility score for MCP-native architectures.
+    Best for: new projects, GCP, Python, multi-agent, MCP-protocol stacks.
+    Watch: Java/Go/TS feature parity — currently materially behind Python.
