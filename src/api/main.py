@@ -2,17 +2,22 @@ import os
 from contextlib import asynccontextmanager
 from typing import List, Dict, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Body
 from pydantic import BaseModel
 
 from src.data.loader import FrameworkLoader
 from src.scoring.engine import ScoringEngine
 from src.data.models import FrameworkSchema, ComputedScores
+from src.recommendation.stack_engine import StackRecommendationEngine
+from src.recommendation.comparator import TradeoffComparator
+from src.recommendation.models import StackQuery, StackRecommendation, FrameworkComparison
 
 # ── Global state ─────────────────────────────────────────────────────────────
 
 _loader: Optional[FrameworkLoader] = None
 _engine: Optional[ScoringEngine] = None
+_stack_engine: Optional[StackRecommendationEngine] = None
+_comparator: Optional[TradeoffComparator] = None
 frameworks_db: Dict[str, FrameworkSchema] = {}
 
 
@@ -21,7 +26,7 @@ frameworks_db: Dict[str, FrameworkSchema] = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load and score all frameworks on startup, clean up on shutdown."""
-    global _loader, _engine, frameworks_db
+    global _loader, _engine, _stack_engine, _comparator, frameworks_db
 
     base_dir = "." if os.path.exists("data/frameworks") else "../.."
     data_dir = os.path.join(base_dir, "data/frameworks")
@@ -33,6 +38,8 @@ async def lifespan(app: FastAPI):
         frameworks_db = _loader.load_all()
         for fw in frameworks_db.values():
             fw.computed_scores = _engine.compute_scores(fw)
+        _stack_engine = StackRecommendationEngine(frameworks_db)
+        _comparator   = TradeoffComparator(frameworks_db)
         print(f"TrueArch: loaded and scored {len(frameworks_db)} frameworks.")
     except Exception as e:
         print(f"TrueArch: startup error — {e}")
@@ -162,3 +169,63 @@ async def get_recommendations(
     results = [_to_response(fw) for fw in recommended]
     results.sort(key=lambda x: x.overall_score, reverse=True)
     return results
+
+
+# ── Stack Recommendation Engine ───────────────────────────────────────────────
+
+@app.post(
+    "/api/v1/recommend/stack",
+    response_model=StackRecommendation,
+    tags=["intelligence"],
+    summary="Generate a full multi-layer stack recommendation",
+    description=(
+        "The flagship TrueArch endpoint. Given a problem description and constraints "
+        "(compliance, scale, priority), returns the optimal framework for each "
+        "architectural layer with reasons, warnings, and tradeoff notes. "
+        "Deterministic — same query always produces the same result."
+    ),
+)
+async def recommend_stack(query: StackQuery) -> StackRecommendation:
+    if _stack_engine is None:
+        raise HTTPException(status_code=503, detail="Intelligence engine not ready.")
+    return _stack_engine.recommend(query)
+
+
+# ── Architecture Tradeoff Reasoner ────────────────────────────────────────────
+
+@app.get(
+    "/api/v1/compare/{framework_a_id}/{framework_b_id}",
+    response_model=FrameworkComparison,
+    tags=["intelligence"],
+    summary="Compare two frameworks side-by-side",
+    description=(
+        "Produces a dimension-by-dimension tradeoff comparison between two frameworks. "
+        "Every winner claim is backed by numerical deltas from the scoring engine. "
+        "Optionally pass `use_case` for more contextual narrative."
+    ),
+)
+async def compare_frameworks(
+    framework_a_id: str,
+    framework_b_id: str,
+    use_case: Optional[str] = Query(
+        None,
+        description="Optional use-case context for more targeted narrative (e.g. 'HIPAA-compliant multi-agent system')",
+    ),
+) -> FrameworkComparison:
+    if _comparator is None:
+        raise HTTPException(status_code=503, detail="Intelligence engine not ready.")
+
+    for fw_id in (framework_a_id, framework_b_id):
+        if fw_id not in frameworks_db:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Framework '{fw_id}' not found. Known IDs: {sorted(frameworks_db.keys())}",
+            )
+
+    if framework_a_id == framework_b_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot compare a framework with itself.",
+        )
+
+    return _comparator.compare(framework_a_id, framework_b_id, use_case)
