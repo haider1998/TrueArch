@@ -546,11 +546,11 @@ PATTERN → OUTCOME
 Before writing any production code, the following conceptual designs must be complete:
 
 ### Intelligence Design
-- [ ] ArchGraph schema fully defined (all node types, edge types, weight formulas)
-- [ ] TrueArch Score calculation methodology documented for each dimension
-- [ ] Confidence score calculation formula documented
-- [ ] Decision Lineage record schema finalized
-- [ ] Evaluation pipeline steps documented with quality gates
+- [x] ArchGraph schema fully defined (all node types, edge types, weight formulas)
+- [x] TrueArch Score calculation methodology documented for each dimension → `SCORING_FORMULA.md`
+- [x] Confidence score calculation formula documented → `SCORING_FORMULA.md`
+- [x] Decision Lineage record schema finalized
+- [x] Evaluation pipeline steps documented with quality gates
 
 ### Trust Design
 - [ ] Open Neutrality Protocol documented
