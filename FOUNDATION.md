@@ -1,14 +1,35 @@
 # TrueArch — Company Foundation Document
 
-> **Version:** 1.0.0  
+> **Version:** 1.2.1  
 > **Status:** Living Document — update with every major strategic decision  
 > **Purpose:** Single source of truth for TrueArch's vision, strategy, and product direction. Consumable by humans and AI agents alike.
+>
+> **Changelog:**  
+> v1.2.1 (2026-05-16) — GitHub org confirmed: TrueArchAI; Genome taxonomy designed (GENOME_TAXONOMY.md)  
+> v1.2.0 (2026-05-16) — Vision evolved to include Autonomous Engineering; governance elevated to Day 1; intelligence accumulation framing added  
+> v1.1.0 (2026-05-16) — Cold Start Strategy, Expanded JTBD, Two-Sided Marketplace, Open Source Strategy, Failure Modes  
+> v1.0.0 (2026-05-16) — Initial foundation document
 
 ---
 
 ## 1. One-Sentence Vision
 
-> **"We build the adaptive intelligence layer that helps AI systems and developers make the best engineering decisions using continuously evolving, production-validated architecture knowledge."**
+> **"We build the adaptive intelligence layer that helps AI systems and developers make the best engineering decisions — using continuously evolving, production-validated architecture knowledge — for a world where autonomous agent proliferation makes manual architectural reasoning impossible."**
+
+### The Long-Term Inevitability Thesis
+
+The future problem is NOT code generation. The future problem is **decision explosion**.
+
+As AI agents proliferate, the following explode combinatorially:
+- Frameworks, tools, sub-agents, orchestration layers
+- Memory systems, security policies, deployment choices
+- Governance rules, compliance requirements, interoperability standards
+
+The ecosystem becomes **impossible to reason about manually**.
+
+TrueArch is the stabilizing intelligence layer that prevents cognitive entropy at ecosystem scale.
+
+**Category:** Decision Infrastructure for Autonomous Engineering
 
 ---
 
@@ -91,15 +112,23 @@ This pain is: **frequent, expensive, growing.** Perfect disruption wedge.
 
 ### 4.3 Jobs-To-Be-Done (JTBD)
 
-**The real job users hire TrueArch for:**
+**There are 5 distinct jobs developers hire TrueArch for (not one):**
 
-> ❌ NOT: "Generate code"  
-> ✅ YES: **"Reduce architectural uncertainty"**
+| Job | Trigger | What Developer Wants |
+|---|---|---|
+| **J1: Greenfield Decision** | "I'm starting a new AI project" | Confident stack choice in under 30 minutes |
+| **J2: Installed Base Audit** | "I built this 12 months ago — is it still right?" | Architecture Debt Score, migration path if needed |
+| **J3: Migration Intelligence** | "I need to move from LangChain to LangGraph" | Step-by-step, risk-scored migration plan |
+| **J4: Pre-Commit Guardrails** | "I'm about to build X — am I missing anything?" | Proactive warnings before the mistake is made |
+| **J5: Stakeholder Communication** | "I need to justify this architectural choice to my CTO" | Evidence-backed ADR with rationale and alternatives rejected |
+
+**J5 is the most underrated job.** Developers frequently need ammunition to defend architectural decisions upward. A TrueArch-generated ADR gives them credibility and cover.
 
 People buy:
 - **Confidence** — "I know I chose the right stack"
 - **Speed** — "I didn't waste weeks evaluating frameworks"
 - **Risk reduction** — "I won't regret this decision in production"
+- **Career protection** — "My decision was evidence-based, not a guess"
 
 ### 4.4 Crossing the Chasm (Geoffrey Moore)
 
@@ -429,6 +458,10 @@ These principles define TrueArch's DNA. Every product decision should be evaluat
 8. **Proactive intelligence > reactive search** — appear before the question is asked
 9. **Context compression > context flooding** — inject only what matters
 10. **Data network effects > feature advantages** — moat through learning, not building
+11. **Intelligence accumulation > intelligence generation** — every interaction must permanently enrich the system
+12. **Governance from Day 1** — audit trails, provenance, and explainability are not enterprise features; they are foundational trust mechanisms
+13. **Long-term consequences > short-term correctness** — optimize for what developers won't regret in 18 months
+14. **Confidence is honesty** — always surface uncertainty; false confidence destroys trust permanently
 
 ---
 
@@ -588,7 +621,189 @@ naming_system:
 
 ---
 
-## 17. Decision Logs
+## 17. Cold Start Strategy
+
+> **Critical Gap:** How does TrueArch bootstrap intelligence and trust before it has ANY production data or user base?
+
+This is the most dangerous phase. The chicken-and-egg problem: you need data to give good recommendations, but you need good recommendations to get users.
+
+### The Bootstrap Plan (Month 0–2)
+
+**Step 1: Curated Human Intelligence (Week 1–4)**
+Do NOT try to automate anything yet. Manually curate 30 top AI frameworks with:
+- Founder's own architectural experience and judgment
+- Aggregated from: GitHub README analysis, community Discord observation, StackOverflow patterns, technical blog posts
+- Validated against: 5–10 senior AI engineers (friends, network, early beta users)
+- Documented explicitly: "This recommendation is based on [source1, source2, source3]"
+
+**Step 2: Seed with Synthetic Outcomes (Week 2–4)**
+Before real telemetry exists, seed the outcome database with:
+- Public post-mortems from engineering blogs (Shopify, Airbnb, Uber AI, etc.)
+- Open source project architecture decisions in repos
+- Conference talks with production architecture details (QCon, StrangeLoop)
+- Document sources explicitly — transparency is critical
+
+**Step 3: Founder as Authority (Month 1–3)**
+Trust does not come from the product alone initially. It comes from the founder.
+- Publish 3–5 personal architecture evaluations under your own name
+- Be visible on X/Twitter/LinkedIn as an AI engineering architecture voice
+- Comment thoughtfully on Hacker News architecture threads
+- Speak at one AI/ML meetup or online summit
+
+**Step 4: Closed Beta With 20 Trust Validators (Month 2–3)**
+Before public launch, recruit 20 senior AI engineers to:
+- Test recommendations against their real projects
+- Give explicit "this is right" / "this is wrong" feedback
+- Provide quotes/testimonials
+- Become early advocates
+
+This small cohort's credibility bootstraps TrueArch's credibility.
+
+**Step 5: First Public Report (Month 2)**
+Publish the "AI Framework Stability Index v1.0" before the product fully launches.
+This builds authority *before* developers even need to trust the product.
+If the report is credible, the product launches with inherited trust.
+
+### Cold Start Quality Bar
+
+Before public launch, TrueArch must:
+- [ ] Have ≥30 frameworks in the database with complete metadata
+- [ ] Have recommendations validated by ≥5 credible AI engineers
+- [ ] Have zero documented hallucinated version numbers
+- [ ] Have one published report that received external engagement
+- [ ] Have ≥10 beta users who explicitly confirmed value
+
+---
+
+## 18. Business Model & Revenue Architecture
+
+### Revenue Model Options Evaluated
+
+| Model | Pros | Cons | Verdict |
+|---|---|---|---|
+| **Per-seat SaaS** | Predictable ARR | Wrong incentive (pay for users not decisions) | ❌ Reject |
+| **Usage-based (per query)** | Aligns with value; scales naturally | Unpredictable revenue | ✅ Primary |
+| **Freemium + Paid tiers** | Developer adoption → team upsell | Conversion risk | ✅ Layer on top of usage |
+| **Enterprise contract** | Large ARR | Slow, requires trust first | ✅ Phase 3+ |
+| **Framework partner fees** | Second revenue stream | Neutrality risk if mishandled | ✅ Carefully, Phase 2+ |
+| **Intelligence API** | B2B2D (business-to-developer-to-developer) | Requires volume | ✅ Phase 2+ |
+
+### Economic Unit Model (Phase 1)
+
+```
+Revenue per 1,000 API queries: ~$2–5 (usage-based)
+Cost per query with caching: ~$0.001–0.01 (small model + cache hit)
+Gross margin (with aggressive caching): ~80%+
+```
+
+Key insight: **Cache hit rate is the most important unit economic lever.** If 80% of queries hit cache, cost drops by 80%. Architecture recommendations for popular stacks repeat constantly.
+
+### Long-term Revenue Expansion
+
+```
+     Phase 1          Phase 2            Phase 3
+  API queries    →  Team subscriptions  →  Enterprise contracts
+  [Low-ACV]          [Mid-ACV]              [High-ACV]
+                   Framework partners     Architecture audits
+                   [Sponsorship rev]      [Professional services]
+```
+
+---
+
+## 19. Open Source Strategy
+
+**Decision Required: What, if anything, do we open source?**
+
+### The Strategic Options
+
+| Approach | What's Open | What's Closed | Examples |
+|---|---|---|---|
+| **Fully closed** | Nothing | Everything | Gartner |
+| **Open core** | MCP server schema + spec | Intelligence engine, graph, scores | HashiCorp (Vault) |
+| **Open data** | Framework metadata, benchmarks | Reasoning engine | Common Crawl |
+| **Fully open** | Everything | Nothing | impossible to monetize |
+
+### Recommended Strategy: Open Core + Open Data
+
+**Open source:**
+- The MCP server schema and tool definitions (the standard)
+- The Architecture Genome schema (the vocabulary)
+- Raw framework metadata (versions, license, links)
+- Benchmark methodology documentation
+
+**Keep proprietary:**
+- The intelligence engine (recommendation reasoning)
+- The Architecture Intelligence Graph (ArchGraph)
+- Outcome data and telemetry
+- Framework Mortality Scores
+- Production reliability data
+
+**Why this works:**
+- Open schema = ecosystem adoption (everyone builds on TrueArch's vocabulary)
+- Open metadata = community contributions and trust
+- Proprietary intelligence = the actual moat
+- This is exactly how Stripe (open API spec, closed risk engine) won
+
+**Decision logged as DL-009 below.**
+
+---
+
+## 20. Two-Sided Marketplace Dynamics
+
+> This is a strategic layer completely missing from v1.0 of this document.
+
+### The Insight
+
+TrueArch is not just a B2D (business-to-developer) product. It has natural **two-sided marketplace dynamics:**
+
+```
+  SUPPLY SIDE                          DEMAND SIDE
+  Framework makers             ←→      Developers / AI Agents
+  (want high ratings,                  (want trusted recommendations,
+   want to be recommended,              want validated intelligence,
+   want developer adoption)             want architectural clarity)
+```
+
+### Why Framework Teams Care About TrueArch
+
+- A high Framework Mortality Score → fewer developers choose their framework
+- A "TrueArch Recommended" badge → proven adoption driver
+- Being well-documented in ArchGraph → better recommendation matching
+- TrueArch's developer traffic = their most targeted potential users
+
+### What This Unlocks
+
+| Opportunity | Description | Revenue Potential |
+|---|---|---|
+| **Verified Partner Program** | Framework teams pay to maintain up-to-date metadata | $500-2K/month per framework |
+| **Expedited Evaluation** | Priority evaluation when a major release happens | One-time fee |
+| **Framework Reach API** | Framework teams query "how many developers are we recommended to?" | Analytics SaaS |
+| **Distribution partnership** | Framework teams promote TrueArch to their communities | Distribution, not revenue |
+
+### Critical Rule
+**Framework partners NEVER buy better scores. They buy metadata maintenance and expedited evaluation timelines.** Neutrality is non-negotiable.
+
+---
+
+## 21. Failure Mode Documentation
+
+> How TrueArch fails — and how we prevent it.
+
+| Failure Mode | Probability | Severity | Prevention |
+|---|---|---|---|
+| **Trust breach** — one badly wrong recommendation goes viral | LOW | CRITICAL | Rigorous validation process, explicit confidence scores, "review date" on all recommendations |
+| **Neutrality violation** — appearance of favoring a framework/vendor | MEDIUM | CRITICAL | Open Neutrality Protocol (see INNOVATION.md), conflict of interest register |
+| **Intelligence staleness** — recommendations lag the ecosystem | HIGH (without process) | HIGH | Automated staleness detection, "last validated" timestamps on all data |
+| **Cold start quality gap** — early recommendations too thin to trust | HIGH | HIGH | Bootstrap plan (Section 17), beta validation before public launch |
+| **Cost overrun** — inference costs exceed revenue | MEDIUM | HIGH | Aggressive caching strategy, small model routing, usage-based pricing |
+| **Framework maker retaliation** — a major framework team publicly disputes a score | MEDIUM | MEDIUM | Open methodology makes scores challengeable via evidence; transparent process protects us |
+| **Copied quickly** — a competitor reproduces the product | HIGH | MEDIUM | Features copy fast; data and trust don't; focus on compounding moats |
+| **MCP deprecation** — MCP falls out of favor | LOW | LOW | Multi-integration strategy; MCP is just one layer of many |
+| **Category definition failure** — market doesn't understand "Decision Infrastructure" | MEDIUM | MEDIUM | Concrete demos of value; lead with pain ("stopped making costly architecture mistakes") not category |
+
+---
+
+## 22. Decision Logs
 
 > Record every major strategic decision here with rationale and alternatives rejected.
 
@@ -623,9 +838,31 @@ naming_system:
 - **Rationale:** Developers trust benchmark providers and evaluators. Becoming the neutral authority builds switching cost via trust, not features.
 - **Date:** 2026-05-16
 
+### DL-006 | Revenue Model
+- **Decision:** Usage-based pricing (per query) as primary, with freemium layer and enterprise contracts later
+- **Rationale:** Aligns revenue with value delivered. Cache hit rate makes unit economics strong. Per-seat doesn't make sense for infrastructure.
+- **Alternatives Rejected:** Pure per-seat SaaS (wrong incentive alignment), fully free with ad model (destroys neutrality)
+- **Date:** 2026-05-16
+
+### DL-007 | JTBD Expansion
+- **Decision:** TrueArch serves 5 distinct jobs, not 1. J5 (stakeholder communication / ADR generation) is the most underrated.
+- **Rationale:** Greenfield decisions are visible but installed base audits (J2) and migration intelligence (J3) are larger TAM. ADR generation (related to J5) creates permanent ecosystem embedding.
+- **Date:** 2026-05-16
+
+### DL-008 | Two-Sided Marketplace
+- **Decision:** Develop supply side (framework teams as partners) from Phase 2 onward. NOT Phase 1.
+- **Rationale:** Framework teams have natural incentive to be well-rated. Creates second distribution channel and revenue stream. BUT: must not compromise neutrality. Phase 1 must establish neutrality before supply side is monetized.
+- **Date:** 2026-05-16
+
+### DL-009 | Open Source Strategy
+- **Decision:** Open Core + Open Data. Open: MCP schema, Genome schema, raw framework metadata, benchmark methodology. Closed: intelligence engine, ArchGraph, outcome data, scores.
+- **Rationale:** Open schemas drive ecosystem adoption and vocabulary ownership. Open data drives trust and community contributions. Proprietary intelligence is the actual moat.
+- **Alternatives Rejected:** Fully open (no monetization), fully closed (no ecosystem adoption)
+- **Date:** 2026-05-16
+
 ---
 
-## 18. Open Questions & Risks
+## 23. Open Questions & Risks
 
 | Question/Risk | Priority | Status |
 |---|---|---|
@@ -634,9 +871,31 @@ naming_system:
 | GitHub org / handle availability | HIGH | ⏳ Pending |
 | First framework database — manual curation scope | HIGH | ⏳ Pending |
 | LLM cost model for recommendation engine | HIGH | ⏳ Pending |
-| Telemetry privacy/legal structure | MEDIUM | ⏳ Pending |
+| Cache strategy design (Redis vs in-memory vs CDN-level) | HIGH | ⏳ Pending |
+| Telemetry privacy/legal structure (GDPR, data minimization) | MEDIUM | ⏳ Pending |
 | First integration target — Cursor or Claude Code? | MEDIUM | ⏳ Pending |
+| Advisory board formation (neutrality mechanism) | MEDIUM | ⏳ Pending |
+| Architecture Genome taxonomy design (dimensions + encoding) | MEDIUM | ⏳ Pending |
+| Open source repository structure for schema/spec | MEDIUM | ⏳ Pending |
+| Framework partner outreach timing (Phase 2) | LOW | ⏳ Pending |
 
 ---
 
-*Last updated: 2026-05-16 | Update this document whenever a major strategic or product decision is made.*
+## 24. Document Index
+
+| File | Contents | When to Read |
+|---|---|---|
+| `FOUNDATION.md` | This file — master vision, strategy, decisions | Always first |
+| `PRINCIPLES.md` | Non-negotiable product/eng/business principles | Before any product decision |
+| `INTELLIGENCE_SYSTEM_DESIGN.md` | **Read before any code** — scoring, lineage, governance, graph design | Before Phase 1 dev |
+| `GENOME_TAXONOMY.md` | ✅ Architecture Genome spec — 10 dimensions, all values, encoding, examples | Before ArchGraph work |
+| `ROADMAP.md` | Phase-by-phase build plan with success criteria | During planning |
+| `ARCHITECTURE.md` | Technical system design, MCP schema, API design | Before any technical work |
+| `MARKET_STRATEGY.md` | Market thesis, GTM, pricing, competitive landscape | Before any GTM activity |
+| `INNOVATION.md` | 13 novel concepts (Genome, Mortality Score, ADR, Confidence, Drift, TrueArch Score...) | Before product spec work |
+| `METRICS.md` | OKRs, North Star metric, anti-metrics | Before any measurement work |
+| `COMPETITIVE_INTELLIGENCE.md` | Real competitors, positioning map, monitoring plan | Quarterly review |
+
+---
+
+*Last updated: 2026-05-16 v1.1.0 | Update this document whenever a major strategic or product decision is made.*
