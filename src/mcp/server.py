@@ -497,6 +497,21 @@ def _build_http_app() -> FastAPI:
             ],
         })
 
+    @http_app.get("/", tags=["system"])
+    async def root():
+        """Root route — returns service info so HF Spaces monitoring gets a 200."""
+        return JSONResponse({
+            "service": "truearch-mcp",
+            "version": _VERSION,
+            "status": "ok",
+            "endpoints": {
+                "mcp": "/mcp",
+                "health": "/health",
+                "version": "/version",
+            },
+            "frameworks_loaded": _FRAMEWORK_COUNT,
+        })
+
     # Mount the MCP server at /mcp — this is where all MCP traffic goes
     http_app.mount("/mcp", mcp.streamable_http_app())
 
@@ -515,7 +530,7 @@ def run() -> None:
             file=sys.stderr,
         )
         app = _build_http_app()
-        host = os.environ.get("HOST", "127.0.0.1")  # Fly.io sets HOST=0.0.0.0
+        host = os.environ.get("HOST", "127.0.0.1")  # HF Spaces / Docker sets HOST=0.0.0.0
         uvicorn.run(
             app,
             host=host,
