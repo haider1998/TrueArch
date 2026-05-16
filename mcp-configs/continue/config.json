@@ -1,0 +1,9 @@
+{
+  "mcpServers": [
+    {
+      "name": "truearch",
+      "url": "https://smhrizvi281-truearch-mcp.hf.space/mcp",
+      "description": "TrueArch Architecture Intelligence — deterministic AI stack recommendations"
+    }
+  ]
+}

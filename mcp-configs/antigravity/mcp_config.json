@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "truearch": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://smhrizvi281-truearch-mcp.hf.space/mcp"]
+    }
+  }
+}

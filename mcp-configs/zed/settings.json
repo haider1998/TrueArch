@@ -1,0 +1,11 @@
+{
+  "context_servers": {
+    "truearch": {
+      "command": {
+        "path": "npx",
+        "args": ["-y", "mcp-remote", "https://smhrizvi281-truearch-mcp.hf.space/mcp"],
+        "env": {}
+      }
+    }
+  }
+}

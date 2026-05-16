@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "truearch": {
+      "type": "http",
+      "url": "https://smhrizvi281-truearch-mcp.hf.space/mcp"
+    }
+  }
+}
