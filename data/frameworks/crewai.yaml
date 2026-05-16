@@ -1,0 +1,148 @@
+schema_version: "1.0"
+
+id: "crewai"
+name: "CrewAI"
+category: "orchestration"
+subcategory: "role-based-multi-agent"
+url: "https://github.com/crewAIInc/crewAI"
+docs_url: "https://docs.crewai.com"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.80.0"
+latest_stable_released: "2026-04-28"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "CREW"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 4
+    issue_resolution_ratio: 0.62
+    open_security_advisories: 0
+    incident_rate: 0.14
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 27000
+    star_growth_30d_pct: 2.1
+    commits_last_90d: 210
+    commits_prev_90d: 195
+    merged_prs_per_30d: 18
+    avg_days_to_merge: 5.8
+    job_postings_30d: 310
+    so_questions_30d: 144
+    so_questions_prev_30d: 138
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4         # LangGraph, AutoGen, ADK, Pydantic AI
+    public_api_methods: 120
+    migration_guide_count: 2
+    community_migrations: 7
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 14
+    doc_completeness_rating: 65    # human-assessed
+    hipaa_deployments: 3
+    soc2_deployments: 6
+    gdpr_deployments: 4
+    other_compliance_deployments: 2
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: false         # Async support added in 0.70 but not fully native
+    is_thread_safe: false          # Known thread-safety issues under concurrent crews
+    has_concurrency_benchmarks: false
+    state_management_rating: 55    # human-assessed — weaker than LangGraph for complex state
+    multiagent_support: "native"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "CREW-001"
+    severity: "high"
+    description: "Memory leak under concurrent crew runs — agent memory grows unbounded without explicit cleanup"
+    affected_versions: "< 0.75.0"
+    resolved: false
+    resolved_in: null
+    workaround: "Restart crew instances after N tasks; use external memory store instead of built-in"
+    source: "https://github.com/crewAIInc/crewAI/issues/1203"
+
+  - id: "CREW-002"
+    severity: "medium"
+    description: "Tool call retry logic can cause duplicate actions when LLM returns malformed tool call JSON"
+    affected_versions: "0.60.0 - 0.78.0"
+    resolved: true
+    resolved_in: "0.79.0"
+    workaround: null
+    source: "https://github.com/crewAIInc/crewAI/issues/1456"
+
+  - id: "CREW-003"
+    severity: "medium"
+    description: "Thread safety issues when running multiple crews concurrently in the same process"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Run each crew in a separate process or use async crew orchestration with process isolation"
+    source: "https://github.com/crewAIInc/crewAI/issues/987"
+
+compatible_with:
+  - framework: "redis"
+    strength: 0.70
+    notes: "Community memory integration; not as tight as LangGraph-Redis"
+
+  - framework: "langsmith"
+    strength: 0.60
+    notes: "Via LangChain callback integration; not native"
+
+  - framework: "fastapi"
+    strength: 0.80
+    notes: "Standard wrapping pattern works; async support improved in 0.70+"
+
+conflicts_with:
+  - framework: "langgraph"
+    severity: "low"
+    notes: "Different architectural paradigm; not technically incompatible but mixing paradigms creates complexity"
+
+supersedes: []
+
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.5
+    notes: "Graph-based vs role-based paradigm shift; significant but well-documented migration path"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/crewAIInc/crewAI"
+    - "https://docs.crewai.com"
+    - "https://github.com/crewAIInc/crewAI/issues"
+    - "https://discord.com/invite/crewai"
+  notes: |
+    High star count reflects early viral adoption (role/persona framing resonated).
+    However, production reliability issues are well-documented — particularly memory leak (CREW-001)
+    and thread safety (CREW-003). Best for prototyping and low-concurrency workflows.
+    NOT recommended for HIPAA or high-concurrency production systems without significant mitigation.
+    Watch: Company is addressing reliability but cadence of breaking changes is high.
+    TrueArch position: "Use with Caution" for production; strong for prototyping.

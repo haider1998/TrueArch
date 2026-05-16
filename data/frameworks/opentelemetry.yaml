@@ -1,0 +1,146 @@
+schema_version: "1.0"
+
+id: "opentelemetry"
+name: "OpenTelemetry"
+category: "observability"
+subcategory: "distributed-tracing-and-metrics"
+url: "https://github.com/open-telemetry/opentelemetry-python"
+docs_url: "https://opentelemetry.io/docs/"
+license: "Apache-2.0"
+primary_language: "Multi"           # Python, Go, Java, JS, Rust, etc.
+latest_stable_version: "1.24.0"    # Python SDK
+latest_stable_released: "2026-04-10"
+
+genome_dimension:
+  key: "D9_observability"
+  value: "OTEL"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.88
+    open_security_advisories: 0
+    incident_rate: 0.02              # Observability tooling — rarely causes incidents itself
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 6200               # Python SDK only; ecosystem-wide adoption is massive
+    star_growth_30d_pct: 2.1
+    commits_last_90d: 156
+    commits_prev_90d: 148
+    merged_prs_per_30d: 19
+    avg_days_to_merge: 4.5
+    job_postings_30d: 680            # CNCF-backed standard; enterprise mandate growing
+    so_questions_30d: 210
+    so_questions_prev_30d: 188
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3           # Datadog Agent, Prometheus+Grafana, vendor-specific SDKs
+    public_api_methods: 90
+    migration_guide_count: 5
+    community_migrations: 8
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 7
+    doc_completeness_rating: 90
+    hipaa_deployments: 25
+    soc2_deployments: 45
+    gdpr_deployments: 30
+    other_compliance_deployments: 20
+    audit_support: "native"          # Audit trail IS the product
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 60     # Not designed for state; tracing spans != state
+    multiagent_support: "possible"   # Trace context propagation across agents
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "OTEL-001"
+    severity: "medium"
+    description: "Python SDK auto-instrumentation can cause 5-15% CPU overhead in high-throughput applications"
+    affected_versions: "< 1.20.0"
+    resolved: true
+    resolved_in: "1.20.0"
+    workaround: "Use manual instrumentation for hot paths; enable sampling to reduce overhead"
+    source: "https://github.com/open-telemetry/opentelemetry-python/issues/3142"
+
+  - id: "OTEL-002"
+    severity: "low"
+    description: "LLM-specific semantic conventions (gen_ai.*) are in experimental status — may change"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Use gen_ai.* attributes but be prepared for schema changes in minor versions"
+    source: "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.80
+    notes: "Via LangSmith or direct span instrumentation on graph nodes"
+
+  - framework: "fastapi"
+    strength: 0.95
+    notes: "opentelemetry-instrumentation-fastapi is production-grade"
+
+  - framework: "redis"
+    strength: 0.70
+    notes: "opentelemetry-instrumentation-redis available; good for tracing cache operations"
+
+  - framework: "qdrant"
+    strength: 0.75
+    notes: "Community OTEL instrumentation; traces Qdrant client calls"
+
+conflicts_with: []
+
+supersedes:
+  - framework: "langsmith"
+    confidence: 0.40
+    notes: "OTEL is more general; LangSmith is LLM-specific. For LLM tracing specifically, LangSmith may be preferable."
+
+migrates_to: []
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/open-telemetry/opentelemetry-python"
+    - "https://opentelemetry.io/docs/"
+    - "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+  notes: |
+    CNCF-graduated project — the most strategically safe observability choice.
+    Vendor-neutral: exports to Jaeger, Zipkin, Prometheus, Datadog, Grafana, etc.
+    
+    For AI/LLM observability: use the gen_ai.* semantic conventions (experimental but
+    de-facto standard). LangSmith is better for LangChain-specific LLM tracing.
+    
+    TrueArch governance alignment: OTEL is exactly the "audit trail from Day 1" approach
+    TrueArch promotes. Every TrueArch recommendation that includes observability should
+    default to OTEL as the standard.
+    
+    TrueArch position: Default recommendation for all production systems.
+    Exception: Pure LangChain/LangGraph stacks where LangSmith may be simpler to set up.
+    Flag: gen_ai.* convention stability (OTEL-002) in AI system recommendations.

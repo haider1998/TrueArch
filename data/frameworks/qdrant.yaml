@@ -1,0 +1,144 @@
+schema_version: "1.0"
+
+id: "qdrant"
+name: "Qdrant"
+category: "vector-db"
+subcategory: "open-source-vector-database"
+url: "https://github.com/qdrant/qdrant"
+docs_url: "https://qdrant.tech/documentation/"
+license: "Apache-2.0"
+primary_language: "Rust"
+latest_stable_version: "1.13.4"
+latest_stable_released: "2026-04-30"
+
+genome_dimension:
+  key: "D7_store"
+  value: "QDRANT"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.84
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 22000
+    star_growth_30d_pct: 3.8
+    commits_last_90d: 224
+    commits_prev_90d: 198
+    merged_prs_per_30d: 31
+    avg_days_to_merge: 2.8
+    job_postings_30d: 280
+    so_questions_30d: 98
+    so_questions_prev_30d: 82
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4          # Pinecone, Chroma, Weaviate, pgvector
+    public_api_methods: 45
+    migration_guide_count: 4
+    community_migrations: 9
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 5
+    doc_completeness_rating: 85
+    hipaa_deployments: 6
+    soc2_deployments: 10
+    gdpr_deployments: 14             # Strong EU adoption (EU-based company)
+    other_compliance_deployments: 4
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 70     # Good for vector retrieval, not agent state
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "QDR-001"
+    severity: "low"
+    description: "Shard rebalancing can cause temporary read latency spikes (50-200ms) on large collections during node scaling events"
+    affected_versions: "< 1.10.0"
+    resolved: true
+    resolved_in: "1.10.0"
+    workaround: null
+    source: "https://github.com/qdrant/qdrant/issues/3241"
+
+  - id: "QDR-002"
+    severity: "low"
+    description: "gRPC streaming can drop connections under very high throughput (>5K RPS) without keep-alive configuration"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Set grpc.keepalive_time_ms=30000 in client config"
+    source: "https://github.com/qdrant/qdrant/issues/2987"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.80
+    notes: "Common pattern: LangGraph agent + Qdrant for semantic memory retrieval"
+
+  - framework: "langchain"
+    strength: 0.90
+    notes: "Official LangChain Qdrant integration"
+
+  - framework: "fastapi"
+    strength: 0.95
+    notes: "Direct REST or gRPC to Qdrant from FastAPI; standard pattern"
+
+  - framework: "opentelemetry"
+    strength: 0.75
+    notes: "OTEL instrumentation available via community library"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "pinecone"
+    effort: 0.3
+    notes: "Similar API surface; mostly client library swap"
+  - framework: "postgresql_pgvector"
+    effort: 0.5
+    notes: "Schema changes required; SQL query model differs significantly"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/qdrant/qdrant"
+    - "https://qdrant.tech/documentation/"
+    - "https://discord.com/invite/qdrant"
+  notes: |
+    TrueArch primary recommendation for open-source vector DB in 2026.
+    Built in Rust = excellent performance and stability characteristics.
+    Zero breaking changes in last 90 days is exceptional for this ecosystem.
+    Strong EU GDPR story (company is EU-based, EU data residency options).
+    Qdrant Cloud available for managed deployment.
+    Main competitor: Pinecone (managed), pgvector (SQL-native).
+    Recommend Qdrant for: pure vector workloads, self-hosted requirements, GDPR-heavy use cases.
+    Recommend pgvector instead when: already on PostgreSQL, need SQL queries alongside vectors.

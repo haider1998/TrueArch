@@ -1,0 +1,157 @@
+schema_version: "1.0"
+
+id: "redis"
+name: "Redis"
+category: "memory"
+subcategory: "in-memory-data-store"
+url: "https://github.com/redis/redis"
+docs_url: "https://redis.io/docs/"
+license: "RSALv2"                   # NOTE: License changed from BSD in 2024 — see curation notes
+primary_language: "C"
+latest_stable_version: "8.0.1"
+latest_stable_released: "2026-05-01"
+
+genome_dimension:
+  key: "D7_store"
+  value: "REDIS"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 0
+    issue_resolution_ratio: 0.91
+    open_security_advisories: 0
+    incident_rate: 0.03              # Extremely mature; very low production incident rate
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 67000
+    star_growth_30d_pct: 0.4         # Mature project — stable, not hypergrowth
+    commits_last_90d: 180
+    commits_prev_90d: 172
+    merged_prs_per_30d: 22
+    avg_days_to_merge: 4.1
+    job_postings_30d: 1840           # Enormous installed base demand
+    so_questions_30d: 520
+    so_questions_prev_30d: 515
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3           # Valkey (OSS Redis fork), DragonflyDB, Memcached
+    public_api_methods: 200          # Large command set
+    migration_guide_count: 6
+    community_migrations: 21
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 3
+    doc_completeness_rating: 95
+    hipaa_deployments: 40
+    soc2_deployments: 60
+    gdpr_deployments: 35
+    other_compliance_deployments: 20
+    audit_support: "plugin"          # Keyspace notifications + AOF logging
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true            # redis-py asyncio support is first-class
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 85     # Excellent for session state; not designed for graph state
+    multiagent_support: "possible"   # Pub/sub for agent coordination; not native multi-agent
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "REDIS-001"
+    severity: "medium"
+    description: "Memory growth under high-frequency key creation without TTL — OOM risk in long-running agent systems"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Always set TTL on agent session keys; implement Redis maxmemory policy (allkeys-lru)"
+    source: "https://redis.io/docs/manual/eviction/"
+
+  - id: "REDIS-002"
+    severity: "high"
+    description: "LICENSE CHANGE: Redis changed from BSD to RSALv2+SSPL in 2024 — impacts cloud provider redistribution. Valkey is the community OSS fork."
+    affected_versions: ">= 7.4.0"
+    resolved: false
+    resolved_in: null
+    workaround: "Use Valkey for pure OSS requirement; use Redis Cloud/AWS ElastiCache for managed; use Redis 7.2.x LTS for BSD license"
+    source: "https://redis.io/blog/redis-adopts-dual-source-available-licensing/"
+
+  - id: "REDIS-003"
+    severity: "low"
+    description: "Single-threaded command execution means CPU-intensive Lua scripts can block other operations"
+    affected_versions: "< 7.0"
+    resolved: true
+    resolved_in: "7.0"             # Redis 7.0 added threading for I/O
+    workaround: null
+    source: "https://redis.io/docs/management/scaling/"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.95
+    notes: "Primary recommended checkpointer for LangGraph production deployments (AsyncRedisSaver)"
+
+  - framework: "crewai"
+    strength: 0.70
+    notes: "Community memory integration; helps with CrewAI-001 memory leak when used as external store"
+
+  - framework: "fastapi"
+    strength: 0.90
+    notes: "Standard caching and session layer; aioredis for async FastAPI patterns"
+
+  - framework: "opentelemetry"
+    strength: 0.70
+    notes: "Redis spans available via opentelemetry-instrumentation-redis"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "valkey"
+    effort: 0.1
+    notes: "Valkey is a drop-in Redis OSS fork; API-compatible; minimal migration effort"
+  - framework: "postgresql"
+    effort: 0.7
+    notes: "Fundamentally different data model; significant effort for complex Redis patterns"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/redis/redis"
+    - "https://redis.io/docs/"
+    - "https://redis.io/blog/redis-adopts-dual-source-available-licensing/"
+  notes: |
+    Battle-tested, extremely mature (10+ years production use). Lowest production incident
+    rate of any framework in our database. Effectively the default choice for session memory
+    and agent state caching.
+    
+    IMPORTANT LICENSE NOTE (REDIS-002): The 2024 license change (BSD → RSALv2+SSPL) is the
+    most significant development in the Redis ecosystem. For open-source projects or cloud
+    provider workloads, evaluate Valkey (OSS fork). For internal/enterprise use, RSALv2 is
+    fine. TrueArch must flag this in every Redis recommendation.
+    
+    TrueArch position: Recommend Redis for production agent memory in most cases.
+    Always flag the license consideration. Suggest Valkey as the OSS alternative.
+    Note REDIS-001 (TTL discipline) in every recommendation — it's a common mistake.

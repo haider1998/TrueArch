@@ -553,22 +553,22 @@ Before writing any production code, the following conceptual designs must be com
 - [x] Evaluation pipeline steps documented with quality gates
 
 ### Trust Design
-- [ ] Open Neutrality Protocol documented
-- [ ] Trust destruction prevention process defined
-- [ ] Staleness detection logic designed
-- [ ] Confidence interval policy defined
+- [x] Open Neutrality Protocol documented → `NEUTRALITY_PROTOCOL.md` (6 mechanisms)
+- [x] Trust destruction prevention process defined → `INTELLIGENCE_SYSTEM_DESIGN.md` Section 4.2
+- [x] Staleness detection logic designed → `SCORING_FORMULA.md` (30-day policy)
+- [x] Confidence interval policy defined → `SCORING_FORMULA.md` (hard cap 99%, warning < 50%)
 
 ### Governance Design
-- [ ] Provenance metadata schema defined
-- [ ] Methodology versioning approach chosen
-- [ ] ADR format finalized (links back to lineage records)
-- [ ] Day 1 governance features scoped
+- [x] Provenance metadata schema defined → `SCORING_FORMULA.md` (per-score sourcing)
+- [x] Methodology versioning approach chosen → git-versioned `SCORING_FORMULA.md`
+- [x] ADR format finalized → `ADR_TEMPLATE.md`
+- [x] Day 1 governance features scoped → `INTELLIGENCE_SYSTEM_DESIGN.md` Section 8.2
 
 ### Telemetry Design
 - [ ] Data minimization policy written
 - [ ] Opt-in consent flow designed
 - [ ] Anonymization approach chosen
-- [ ] Cold start data sourcing plan finalized
+- [x] Cold start data sourcing plan finalized → `data/frameworks/` (6 curated, 19 pending)
 
 ### Architecture Genome Design
 - [x] All dimensions defined — 10 dimensions (7 core + 3 extended) → `GENOME_TAXONOMY.md`

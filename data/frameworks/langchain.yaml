@@ -1,0 +1,150 @@
+schema_version: "1.0"
+
+id: "langchain"
+name: "LangChain"
+category: "orchestration"
+subcategory: "chain-based-llm-framework"
+url: "https://github.com/langchain-ai/langchain"
+docs_url: "https://python.langchain.com"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.3.25"
+latest_stable_released: "2026-04-15"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "LANG"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 6
+    issue_resolution_ratio: 0.55
+    open_security_advisories: 1
+    incident_rate: 0.18
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 93000
+    star_growth_30d_pct: 0.3        # Growth flattening as LangGraph captures new projects
+    commits_last_90d: 310
+    commits_prev_90d: 380           # Declining commit velocity (team focus shifting to LangGraph)
+    merged_prs_per_30d: 28
+    avg_days_to_merge: 6.1
+    job_postings_30d: 820           # High absolute, but legacy installed base inflates this
+    so_questions_30d: 420
+    so_questions_prev_30d: 448      # Q&A velocity declining
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 5          # LangGraph, CrewAI, AutoGen, ADK, LlamaIndex
+    public_api_methods: 340         # Very large API surface = higher lock-in
+    migration_guide_count: 8        # Many migration guides AWAY from LangChain
+    community_migrations: 34        # High number recorded — ecosystem actively migrating
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 1
+    avg_days_to_patch: 22
+    doc_completeness_rating: 80    # Docs are comprehensive but complex
+    hipaa_deployments: 15           # Large installed base
+    soc2_deployments: 20
+    gdpr_deployments: 12
+    other_compliance_deployments: 8
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "wrapper_available"
+    is_async_native: false          # LCEL has async but not natively designed for it
+    is_thread_safe: false
+    has_concurrency_benchmarks: false
+    state_management_rating: 40    # human-assessed — poor for complex stateful agents
+    multiagent_support: "limited"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "LANG-001"
+    severity: "high"
+    description: "Ecosystem fragmentation: LangChain split into langchain-core, langchain-community, langchain packages causes import confusion and version conflicts"
+    affected_versions: ">= 0.2.0"
+    resolved: false
+    resolved_in: null
+    workaround: "Pin all langchain-* packages to exact compatible versions; use poetry lockfile"
+    source: "https://github.com/langchain-ai/langchain/discussions/18312"
+
+  - id: "LANG-002"
+    severity: "high"
+    description: "47 breaking API changes between v0.1.x and v0.3.x — major migration effort for existing codebases"
+    affected_versions: "0.1.x"
+    resolved: false
+    resolved_in: null
+    workaround: "See official migration guide; budget 2-4 weeks for large codebases"
+    source: "https://python.langchain.com/docs/versions/migrating_chains/"
+
+  - id: "LANG-003"
+    severity: "medium"
+    description: "LCEL (LangChain Expression Language) has significant performance overhead vs direct API calls for simple chains"
+    affected_versions: ">= 0.2.0"
+    resolved: false
+    resolved_in: null
+    workaround: "Use direct API calls for simple prompt-response patterns; reserve LCEL for complex chains"
+    source: "https://github.com/langchain-ai/langchain/issues/14892"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.85
+    notes: "LangGraph builds on LangChain; designed to coexist. LangGraph replaces complex chains."
+
+  - framework: "langsmith"
+    strength: 0.95
+    notes: "Native first-class support"
+
+  - framework: "redis"
+    strength: 0.65
+    notes: "Community cache integration"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.4
+    notes: "For stateful workflows: well-documented path, same team, lower effort than cross-framework migrations"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/langchain-ai/langchain"
+    - "https://python.langchain.com"
+    - "https://github.com/langchain-ai/langchain/releases"
+  notes: |
+    IMPORTANT: LangChain represents a category in transition.
+    Enormous installed base (93K stars, 820 job postings) but momentum is shifting to LangGraph.
+    Commit velocity declining; LangChain Inc engineering focus is clearly LangGraph.
+    Star growth nearly flat (0.3%/month vs LangGraph's 4.2%/month).
+    High breaking change rate and ecosystem fragmentation are real pain points.
+    
+    TrueArch position: Do NOT recommend for new projects in 2026. Recommend LangGraph instead.
+    For existing LangChain codebases: provide Migration Intelligence to LangGraph.
+    This is TrueArch's clearest "Installed Base Audit" opportunity — the LangChain installed base
+    is large, knows they need to migrate, and needs help doing it.
+    
+    Framework Mortality Signal: DECLINING. Monitor quarterly for acceleration.

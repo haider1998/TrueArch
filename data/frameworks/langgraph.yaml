@@ -1,0 +1,180 @@
+schema_version: "1.0"
+
+# ─────────────────────────────────────────────
+# IDENTITY
+# ─────────────────────────────────────────────
+id: "langgraph"
+name: "LangGraph"
+category: "orchestration"
+subcategory: "stateful-agent-orchestration"
+url: "https://github.com/langchain-ai/langgraph"
+docs_url: "https://langchain-ai.github.io/langgraph/"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.2.28"
+latest_stable_released: "2026-04-20"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "LGR"
+
+# ─────────────────────────────────────────────
+# RAW SIGNALS
+# ─────────────────────────────────────────────
+signals:
+  production_stability:
+    breaking_changes_per_90d: 2
+    issue_resolution_ratio: 0.78
+    open_security_advisories: 0
+    incident_rate: 0.08
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 8200
+    star_growth_30d_pct: 4.2
+    commits_last_90d: 187
+    commits_prev_90d: 142
+    merged_prs_per_30d: 24
+    avg_days_to_merge: 3.2
+    job_postings_30d: 420
+    so_questions_30d: 183
+    so_questions_prev_30d: 141
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4         # CrewAI, AutoGen, ADK, Pydantic AI
+    public_api_methods: 85
+    migration_guide_count: 3
+    community_migrations: 12
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 8
+    doc_completeness_rating: 75    # human-assessed
+    hipaa_deployments: 8
+    soc2_deployments: 12
+    gdpr_deployments: 6
+    other_compliance_deployments: 3
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 100   # human-assessed — best-in-class graph state
+    multiagent_support: "native"
+    signals_date: "2026-05-16"
+
+# ─────────────────────────────────────────────
+# COMPUTED SCORES (engine-generated)
+# ─────────────────────────────────────────────
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+# ─────────────────────────────────────────────
+# KNOWN ISSUES
+# ─────────────────────────────────────────────
+known_issues:
+  - id: "LGR-001"
+    severity: "medium"
+    description: "StateGraph checkpoint format changed in v0.2.0 — incompatible with 0.1.x state schemas"
+    affected_versions: "< 0.2.0"
+    resolved: true
+    resolved_in: "0.2.0"
+    workaround: null
+    source: "https://github.com/langchain-ai/langgraph/releases/tag/0.2.0"
+
+  - id: "LGR-002"
+    severity: "medium"
+    description: "Memory growth under high concurrent state updates (> 500 concurrent graphs with in-memory checkpointing)"
+    affected_versions: "< 0.2.28"
+    resolved: false
+    resolved_in: null
+    workaround: "Use Redis external checkpointer instead of MemorySaver for production deployments"
+    source: "https://github.com/langchain-ai/langgraph/issues/1847"
+
+  - id: "LGR-003"
+    severity: "low"
+    description: "Streaming token output can cause state inconsistency if interrupt_before is used during streaming"
+    affected_versions: "0.2.0 - 0.2.20"
+    resolved: true
+    resolved_in: "0.2.21"
+    workaround: null
+    source: "https://github.com/langchain-ai/langgraph/issues/2013"
+
+# ─────────────────────────────────────────────
+# COMPATIBILITY
+# ─────────────────────────────────────────────
+compatible_with:
+  - framework: "redis"
+    strength: 0.95
+    notes: "Primary recommended checkpointer/memory backend for production LangGraph deployments"
+
+  - framework: "postgresql"
+    strength: 0.85
+    notes: "AsyncPostgresSaver available; good for compliance-heavy environments needing SQL audit trails"
+
+  - framework: "opentelemetry"
+    strength: 0.80
+    notes: "Via LangSmith integration or direct OTEL spans on graph nodes"
+
+  - framework: "langsmith"
+    strength: 0.92
+    notes: "Native LangSmith tracing via LANGCHAIN_TRACING_V2 env var — first-class support"
+
+  - framework: "fastapi"
+    strength: 0.90
+    notes: "Standard pattern: FastAPI + LangGraph graph exposed as async endpoint"
+
+conflicts_with:
+  - framework: "langchain-legacy"
+    severity: "low"
+    notes: "LangGraph replaces LCEL chains for complex multi-step workflows; both can coexist but mixing is discouraged"
+
+supersedes:
+  - framework: "langchain"
+    confidence: 0.75
+    notes: "For stateful multi-step agent workflows and complex orchestration; LangChain still used for simple chains"
+
+migrates_to:
+  - framework: "google_adk"
+    effort: 0.6
+    notes: "Significant API differences; state management model differs; migration non-trivial"
+
+  - framework: "crewai"
+    effort: 0.5
+    notes: "Different paradigm (role-based vs graph-based); requires rethinking architecture"
+
+# ─────────────────────────────────────────────
+# CURATION METADATA
+# ─────────────────────────────────────────────
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/langchain-ai/langgraph"
+    - "https://langchain-ai.github.io/langgraph/"
+    - "https://github.com/langchain-ai/langgraph/releases"
+    - "https://discord.com/invite/langchain"
+    - "https://www.linkedin.com/jobs/search/?keywords=langgraph"
+  notes: |
+    Primary recommended orchestration framework for multi-agent Python systems in 2026.
+    Backed by LangChain Inc. Strong enterprise momentum. StateGraph model is best-in-class
+    for complex agent workflows. Redis checkpointing is the production-recommended pattern.
+    Main weakness: MCP support is community-built, not native. Watch for v0.3.x native MCP.
