@@ -1,0 +1,150 @@
+schema_version: "1.0"
+
+id: "dspy"
+name: "DSPy"
+category: "orchestration"
+subcategory: "declarative-llm-programming"
+url: "https://github.com/stanfordnlp/dspy"
+docs_url: "https://dspy.ai"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "2.6.0"
+latest_stable_released: "2026-04-15"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "DSPY"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 4            # Active research-to-production transition; API in flux
+    issue_resolution_ratio: 0.58           # Estimated from public GitHub issues
+    open_security_advisories: 0
+    incident_rate: 0.15                    # default — academic origins, limited enterprise telemetry
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 24000                    # Verified May 2026 — strong research community
+    star_growth_30d_pct: 3.5
+    commits_last_90d: 130
+    commits_prev_90d: 95
+    merged_prs_per_30d: 14
+    avg_days_to_merge: 5.8
+    job_postings_30d: 220                  # Growing enterprise interest
+    so_questions_30d: 110
+    so_questions_prev_30d: 80
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4
+    public_api_methods: 70
+    migration_guide_count: 2
+    community_migrations: 6
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 18
+    doc_completeness_rating: 60    # Research-quality docs; improving
+    hipaa_deployments: 1
+    soc2_deployments: 2
+    gdpr_deployments: 3
+    other_compliance_deployments: 1
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"
+    is_async_native: false
+    is_thread_safe: false
+    has_concurrency_benchmarks: false
+    state_management_rating: 40    # Optimizer-centric; not designed for runtime state management
+    multiagent_support: "limited"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "DSPY-001"
+    severity: "high"
+    description: "Not async-native — DSPy has limited async support, which creates bottlenecks in high-throughput agentic pipelines that rely on concurrent LLM calls"
+    affected_versions: "< 2.6.0"
+    resolved: false
+    resolved_in: null
+    workaround: "Use thread pools or asyncio.to_thread() wrappers; consider LangGraph for async-native orchestration"
+    source: "https://github.com/stanfordnlp/dspy"
+
+  - id: "DSPY-002"
+    severity: "medium"
+    description: "API instability — DSPy is transitioning from research to production; significant API changes between major versions, particularly in optimizers and module composition"
+    affected_versions: "< 2.0.0"
+    resolved: true
+    resolved_in: "2.0.0"
+    workaround: "Pin to 2.x series; review migration guide for 1.x → 2.x"
+    source: "https://dspy.ai/docs/migration"
+
+  - id: "DSPY-003"
+    severity: "low"
+    description: "No native MCP support — DSPy tools are not MCP-compatible out of the box; agent interoperability requires manual adaptation"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Wrap DSPy modules as MCP tools manually using mcp-sdk; watch for community MCP adapter"
+    source: "https://github.com/stanfordnlp/dspy"
+
+compatible_with:
+  - framework: "fastapi"
+    strength: 0.75
+    notes: "DSPy programs exposed as FastAPI endpoints; requires sync-to-async bridge"
+
+  - framework: "opentelemetry"
+    strength: 0.65
+    notes: "Via custom instrumentation; no native OTEL support"
+
+  - framework: "qdrant"
+    strength: 0.80
+    notes: "DSPy retrieval modules integrate well with Qdrant for RAG pipelines"
+
+conflicts_with:
+  - framework: "langgraph"
+    severity: "low"
+    notes: "Different paradigms: DSPy is declarative/optimizer-focused, LangGraph is graph-based orchestration. Can be combined but complex to maintain."
+
+supersedes: []
+
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.65
+    notes: "Fundamentally different paradigm; migrating a DSPy optimizer-driven pipeline to a LangGraph graph requires rearchitecting the control flow"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/stanfordnlp/dspy"
+    - "https://dspy.ai"
+    - "https://dspy.ai/docs"
+  notes: |
+    Verified May 16 2026: 24,000+ GitHub stars, latest release v2.6.0 (April 15 2026).
+    DSPy (Declarative Self-improving Python) is Stanford NLP's framework for programming
+    language models rather than prompting them. Unique value: automatic optimization of
+    prompts and few-shot examples via compiled signatures (BootstrapFewShot, MIPRO, etc.)
+    Best for: RAG pipelines with complex retrieval, production LLM systems requiring
+    automatic prompt optimization, research-to-production use cases.
+    Not recommended for: real-time agentic workflows requiring async, enterprise systems
+    requiring audit trails, or multi-agent orchestration without async support.
+    MCP status: no support. Not expected short-term given academic focus.

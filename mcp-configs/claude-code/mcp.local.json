@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "truearch": {
+      "command": "python",
+      "args": ["-m", "src.mcp.server"],
+      "cwd": "/REPLACE_WITH_YOUR_PATH/TrueArch",
+      "description": "TrueArch Architecture Intelligence (local stdio mode — for development)"
+    }
+  }
+}

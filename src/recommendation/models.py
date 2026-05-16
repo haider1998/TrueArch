@@ -105,6 +105,20 @@ class StackRecommendation(BaseModel):
     tradeoff_notes: List[str] = Field(default_factory=list)
     confidence: float = Field(description="Overall recommendation confidence 0–100")
     score_band: str
+    # Architecture Genome™ — the fingerprint of this architectural decision
+    genome_short: Optional[str] = Field(
+        default=None,
+        description="Short 7-dimension Genome (e.g. MA-STAT-HOR-HIPAA-PY-MCP-REDIS)",
+    )
+    genome_full: Optional[str] = Field(
+        default=None,
+        description="Full 10-dimension Genome with orchestrator, observability, deployment",
+    )
+    # ADR metadata
+    review_by: Optional[str] = Field(
+        default=None,
+        description="ISO date — re-evaluate this recommendation if Mortality Score drops below 60",
+    )
     generated_at: str
 
 

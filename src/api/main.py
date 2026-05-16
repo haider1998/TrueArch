@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from typing import List, Dict, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 from src.data.loader import FrameworkLoader
@@ -10,6 +11,8 @@ from src.scoring.engine import ScoringEngine
 from src.data.models import FrameworkSchema, ComputedScores
 from src.recommendation.stack_engine import StackRecommendationEngine
 from src.recommendation.comparator import TradeoffComparator
+from src.recommendation.adr_generator import ADRGenerator
+from src.recommendation.genome import genome_similarity
 from src.recommendation.models import StackQuery, StackRecommendation, FrameworkComparison
 
 # ── Global state ─────────────────────────────────────────────────────────────
@@ -18,6 +21,7 @@ _loader: Optional[FrameworkLoader] = None
 _engine: Optional[ScoringEngine] = None
 _stack_engine: Optional[StackRecommendationEngine] = None
 _comparator: Optional[TradeoffComparator] = None
+_adr_generator = ADRGenerator()
 frameworks_db: Dict[str, FrameworkSchema] = {}
 
 
@@ -229,3 +233,58 @@ async def compare_frameworks(
         )
 
     return _comparator.compare(framework_a_id, framework_b_id, use_case)
+
+
+# ── ADR Generator ─────────────────────────────────────────────────────────
+
+class ADRRequest(BaseModel):
+    query: StackQuery
+    adr_number: int = 1
+    project_name: Optional[str] = None
+    team: Optional[str] = None
+
+
+@app.post(
+    "/api/v1/recommend/stack/adr",
+    response_class=PlainTextResponse,
+    tags=["intelligence"],
+    summary="Generate a committable Architecture Decision Record (ADR)",
+    description=(
+        "Runs a stack recommendation and returns a Markdown ADR file ready to commit "
+        "as docs/adr/ADR-NNN.md. The ADR includes the Architecture Genome™, rationale "
+        "per layer, alternatives rejected, risks, and a review schedule."
+    ),
+)
+async def generate_adr(request: ADRRequest) -> PlainTextResponse:
+    if _stack_engine is None:
+        raise HTTPException(status_code=503, detail="Intelligence engine not ready.")
+    recommendation = _stack_engine.recommend(request.query)
+    markdown = _adr_generator.generate(
+        recommendation,
+        adr_number=request.adr_number,
+        project_name=request.project_name,
+        team=request.team,
+    )
+    return PlainTextResponse(content=markdown, media_type="text/markdown")
+
+
+# ── Genome Comparison ────────────────────────────────────────────────────────
+
+class GenomeCompareRequest(BaseModel):
+    genome_a: str
+    genome_b: str
+
+
+@app.post(
+    "/api/v1/genome/compare",
+    tags=["intelligence"],
+    summary="Compare two Architecture Genomes for similarity",
+    description=(
+        "Compares two Architecture Genome strings across 7 weighted dimensions. "
+        "Returns a similarity score (0–1), matching/mismatching dimensions, and a "
+        "hard-filter flag if compliance profiles (D4) are incompatible. "
+        "Supports wildcard (*) matching in either genome."
+    ),
+)
+async def compare_genomes(request: GenomeCompareRequest):
+    return genome_similarity(request.genome_a, request.genome_b)

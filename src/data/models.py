@@ -71,6 +71,9 @@ class ComputedScores(BaseModel):
     score_band: Optional[Literal["Excellent", "Strong", "Good", "Fair", "Weak", "Poor"]] = None
     last_computed: Optional[date] = None
     valid_until: Optional[date] = None
+    # Staleness
+    staleness_status: Optional[Literal["fresh", "acceptable", "stale", "expired"]] = None
+    staleness_warning: Optional[str] = None
 
 class KnownIssue(BaseModel):
     id: str

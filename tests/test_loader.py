@@ -15,9 +15,10 @@ def test_loader_initialization():
 
 
 def test_load_all_frameworks(loaded_frameworks):
-    """All 25 seed framework YAMLs are loaded and parsed without errors."""
-    # 25 frameworks (schema.yaml is excluded by the loader)
-    assert len(loaded_frameworks) == 25
+    """All seed framework YAMLs are loaded and parsed without errors."""
+    # Minimum 25 frameworks (schema.yaml excluded by loader); grows as new YAMLs are added
+    assert len(loaded_frameworks) >= 25
+
 
 
 def test_known_framework_ids_present(loaded_frameworks):

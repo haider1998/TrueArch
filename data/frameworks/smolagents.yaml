@@ -1,0 +1,139 @@
+schema_version: "1.0"
+
+id: "smolagents"
+name: "SmolAgents"
+category: "orchestration"
+subcategory: "lightweight-agent-orchestration"
+url: "https://github.com/huggingface/smolagents"
+docs_url: "https://huggingface.co/docs/smolagents"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "1.13.0"
+latest_stable_released: "2026-04-28"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "SMOL"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 3            # Active development cadence; minor API changes
+    issue_resolution_ratio: 0.65           # Estimated from GitHub activity
+    open_security_advisories: 0
+    incident_rate: 0.12                    # default — new framework, limited telemetry
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 18500                    # Verified May 2026 — rapid growth from HuggingFace community
+    star_growth_30d_pct: 6.8              # Strong growth driven by HF model hub integration
+    commits_last_90d: 145
+    commits_prev_90d: 110
+    merged_prs_per_30d: 18
+    avg_days_to_merge: 4.2
+    job_postings_30d: 180                  # Growing but nascent job market
+    so_questions_30d: 85
+    so_questions_prev_30d: 60
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4         # LangGraph, CrewAI, AutoGen, Pydantic AI
+    public_api_methods: 45         # Intentionally minimal API surface
+    migration_guide_count: 1
+    community_migrations: 4
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 12
+    doc_completeness_rating: 65    # Good but evolving — HuggingFace doc quality
+    hipaa_deployments: 2
+    soc2_deployments: 3
+    gdpr_deployments: 4
+    other_compliance_deployments: 1
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "wrapper_available"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 50    # Minimal stateful management — intentional design choice
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "SMOL-001"
+    severity: "medium"
+    description: "No native state persistence — SmolAgents is designed stateless by default; stateful multi-turn memory requires explicit external storage integration"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Integrate Redis or PostgreSQL as external memory store; use HuggingFace Hub for model-level state"
+    source: "https://github.com/huggingface/smolagents"
+
+  - id: "SMOL-002"
+    severity: "low"
+    description: "Limited enterprise audit tooling — no native audit log or compliance output; enterprise governance requires custom wrapper"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Wrap with OpenTelemetry or Helicone for observability; add custom audit middleware"
+    source: "https://huggingface.co/docs/smolagents"
+
+compatible_with:
+  - framework: "opentelemetry"
+    strength: 0.75
+    notes: "Via standard Python instrumentation; no native OTEL spans but straightforward to add"
+
+  - framework: "fastapi"
+    strength: 0.85
+    notes: "Common pattern: SmolAgents agent exposed as FastAPI async endpoint"
+
+  - framework: "redis"
+    strength: 0.70
+    notes: "External memory store for stateful multi-turn conversations"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.55
+    notes: "SmolAgents is intentionally simpler; migrating to LangGraph requires adding explicit state management and graph topology"
+
+  - framework: "pydantic_ai"
+    effort: 0.40
+    notes: "Similar lightweight philosophy; migration is relatively straightforward"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/huggingface/smolagents"
+    - "https://huggingface.co/docs/smolagents"
+  notes: |
+    Verified May 16 2026: 18,500+ GitHub stars, latest release v1.13.0 (April 28 2026).
+    SmolAgents is HuggingFace's opinionated, minimal orchestration framework.
+    Design philosophy: "CodeAgent" runs Python code directly rather than JSON tool calls —
+    significantly different from LangGraph/CrewAI paradigm.
+    Best for: teams using HuggingFace Hub models, rapid prototyping, research workflows.
+    Not recommended for: enterprise compliance-heavy systems, large stateful multi-agent graphs.
+    MCP support: community wrapper available but not native. Watch for native MCP in v2.0+.

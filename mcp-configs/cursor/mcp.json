@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "truearch": {
+      "url": "https://smhrizvi281-truearch-mcp.hf.space/mcp",
+      "description": "TrueArch Architecture Intelligence — deterministic, scored framework recommendations for AI-native systems."
+    }
+  }
+}

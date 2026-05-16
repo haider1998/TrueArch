@@ -49,7 +49,12 @@ class ScoringEngine:
         # Set Validity
         scores.last_computed = self.today
         scores.valid_until = self.today + timedelta(days=30)
-        
+
+        # Staleness status
+        staleness_status, staleness_warning = self._determine_staleness(scores)
+        scores.staleness_status = staleness_status
+        scores.staleness_warning = staleness_warning
+
         return scores
 
     def _compute_production_stability(self, fw: FrameworkSchema) -> float:
@@ -270,6 +275,41 @@ class ScoringEngine:
             return "Weak"
         else:
             return "Poor"
+
+    def _determine_staleness(
+        self,
+        scores: "ComputedScores",
+    ) -> tuple:
+        """
+        Compute staleness status from last_computed date.
+        Per SCORING_FORMULA.md DL-019:
+          fresh      → last_computed < 7 days ago
+          acceptable → 7-30 days
+          stale      → 31-60 days (confidence penalty applied)
+          expired    → >60 days (recommendation blocked)
+        """
+        if not scores.last_computed:
+            return ("expired", "No computation date recorded — signals may be very stale.")
+
+        days_old = (self.today - scores.last_computed).days
+
+        if days_old <= 7:
+            return ("fresh", None)
+        elif days_old <= 30:
+            return ("acceptable", None)
+        elif days_old <= 60:
+            return (
+                "stale",
+                f"Signals are {days_old} days old. Confidence reduced. "
+                "Re-validate before using in production decisions.",
+            )
+        else:
+            return (
+                "expired",
+                f"Signals are {days_old} days old (>60 days). "
+                "This score is expired and should not be used for architectural decisions. "
+                "Re-curate framework data immediately.",
+            )
 
 if __name__ == "__main__":
     from src.data.loader import FrameworkLoader

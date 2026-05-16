@@ -1,0 +1,142 @@
+schema_version: "1.0"
+
+id: "arize"
+name: "Arize AI"
+category: "observability"
+subcategory: "llm-observability"
+url: "https://github.com/Arize-ai/arize"
+docs_url: "https://docs.arize.com"
+license: "proprietary"
+primary_language: "Python"
+latest_stable_version: "7.28.0"
+latest_stable_released: "2026-05-05"
+
+genome_dimension:
+  key: "D9_observability"
+  value: "ARIZE"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.80
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 3200                     # arize-python SDK stars; platform usage is wider
+    star_growth_30d_pct: 2.1
+    commits_last_90d: 90
+    commits_prev_90d: 75
+    merged_prs_per_30d: 12
+    avg_days_to_merge: 3.0
+    job_postings_30d: 320                  # Strong enterprise demand for LLM observability
+    so_questions_30d: 45
+    so_questions_prev_30d: 38
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3        # LangSmith, Helicone, OpenTelemetry
+    public_api_methods: 55
+    migration_guide_count: 2
+    community_migrations: 8
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 7
+    doc_completeness_rating: 80
+    hipaa_deployments: 15
+    soc2_deployments: 30
+    gdpr_deployments: 20
+    other_compliance_deployments: 8
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "none"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 60    # Observability of state; not state management itself
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+
+known_issues:
+  - id: "ARIZE-001"
+    severity: "low"
+    description: "Proprietary platform lock-in — Arize Phoenix (open-source) is available as self-hosted alternative, but full platform features require Arize cloud subscription"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Use Arize Phoenix (open-source) for self-hosted; evaluate OpenTelemetry for vendor-neutral alternative"
+    source: "https://github.com/Arize-ai/phoenix"
+
+  - id: "ARIZE-002"
+    severity: "low"
+    description: "Cost at scale — Arize pricing scales with event volume; large-scale agentic deployments with millions of spans can incur significant cost"
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Implement sampling strategy; use OpenTelemetry for high-volume spans with Arize for LLM-specific traces only"
+    source: "https://docs.arize.com/arize/pricing"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.85
+    notes: "Native LangGraph integration via arize-otel; LangGraph spans auto-captured"
+
+  - framework: "opentelemetry"
+    strength: 0.90
+    notes: "Arize is built on OpenTelemetry; full OTEL compatibility for trace export"
+
+  - framework: "fastapi"
+    strength: 0.80
+    notes: "Standard FastAPI middleware for request tracing; easy integration"
+
+  - framework: "langchain"
+    strength: 0.85
+    notes: "Native LangChain callback integration"
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "opentelemetry"
+    effort: 0.30
+    notes: "Arize is built on OTEL; migrating to raw OTEL is straightforward but loses LLM-specific analytics"
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "founder"
+  next_validation_due: "2026-06-16"
+  confidence_override: null
+  sources:
+    - "https://github.com/Arize-ai/arize"
+    - "https://docs.arize.com"
+    - "https://github.com/Arize-ai/phoenix"
+  notes: |
+    Verified May 16 2026: Arize AI is a leading LLM observability platform with strong
+    enterprise adoption (SOC 2 Type II certified, HIPAA-eligible).
+    Open-source offering: Arize Phoenix — self-hosted tracing and evaluation.
+    Enterprise offering: Arize Cloud — managed platform with advanced analytics.
+    Best for: Enterprise teams requiring LLM-specific observability, compliance audit trails,
+    and production model monitoring at scale.
+    Integrates with: LangChain, LangGraph, OpenAI, Anthropic, Google ADK natively.
+    Key differentiator vs. LangSmith: vendor-neutral (not LangChain-specific), stronger
+    compliance posture, better support for multi-model and multi-vendor deployments.

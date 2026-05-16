@@ -1,0 +1,24 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.git/
+.gitignore
+.env*
+!.env.example
+
+# Dev/docs — not needed in the container
+tests/
+*.md
+!README.md
+mcp-configs/
+*.toml
+!fly.toml
+
+# Local data overrides
+*.log
+*.tmp

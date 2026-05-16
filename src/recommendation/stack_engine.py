@@ -13,15 +13,18 @@ Design principles:
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta, date
 from typing import Dict, List, Optional
 
 from src.data.models import FrameworkSchema, ComputedScores
 from src.scoring.engine import ScoringEngine
+from src.recommendation.genome import GenomeGenerator
 from src.recommendation.models import (
     ArchLayer, ComplianceFlag, PriorityAxis, ScaleTier,
     FrameworkChoice, StackQuery, StackRecommendation,
 )
+
+_genome_generator = GenomeGenerator()
 
 
 # ── Category → ArchLayer mapping ─────────────────────────────────────────────
@@ -264,6 +267,12 @@ class StackRecommendationEngine:
 
         band = self._band(avg_conf)
 
+        # Architecture Genome™ — fingerprint this architectural decision
+        genome_short, genome_full = _genome_generator.generate(layer_results, query)
+
+        # ADR review date: 12 months from today
+        review_by = (date.today() + timedelta(days=365)).isoformat()
+
         return StackRecommendation(
             query_summary=self._summarise_query(query),
             layers=layer_results,
@@ -271,6 +280,9 @@ class StackRecommendationEngine:
             tradeoff_notes=tradeoff_notes,
             confidence=round(avg_conf, 1),
             score_band=band,
+            genome_short=genome_short,
+            genome_full=genome_full,
+            review_by=review_by,
             generated_at=datetime.now(timezone.utc).isoformat(),
         )
 

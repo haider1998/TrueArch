@@ -18,10 +18,7 @@ from src.recommendation.models import (
 
 # ── Shared fixtures ────────────────────────────────────────────────────────────
 
-@pytest.fixture(scope="module")
-def client():
-    with TestClient(app) as c:
-        yield c
+# client fixture is provided by conftest.py (module-scoped)
 
 
 @pytest.fixture(scope="module")

@@ -11,16 +11,7 @@ from fastapi.testclient import TestClient
 from src.api.main import app
 
 
-# ── Shared client fixture ─────────────────────────────────────────────────────
-
-@pytest.fixture(scope="module")
-def client():
-    """
-    Module-scoped TestClient. Enters the app's lifespan once per module,
-    which loads and scores all 25 frameworks.
-    """
-    with TestClient(app) as c:
-        yield c
+# client fixture is provided by conftest.py (module-scoped)
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
@@ -31,18 +22,18 @@ def test_health_check(client):
 
     data = response.json()
     assert data["status"] == "ok"
-    assert data["frameworks_loaded"] == 25
+    assert data["frameworks_loaded"] >= 25  # grows as new frameworks are added
 
 
 # ── Framework listing ─────────────────────────────────────────────────────────
 
 def test_list_all_frameworks(client):
-    """All 25 frameworks are returned, sorted by score descending."""
+    """All frameworks are returned, sorted by score descending."""
     response = client.get("/api/v1/frameworks")
     assert response.status_code == 200
 
     data = response.json()
-    assert len(data) == 25
+    assert len(data) >= 25  # minimum floor — grows as new frameworks are added
 
     scores = [fw["overall_score"] for fw in data]
     assert scores == sorted(scores, reverse=True), "Frameworks should be sorted by score"
@@ -75,8 +66,13 @@ def test_list_frameworks_genome_filter(client):
 
     data = response.json()
     assert len(data) >= 5
+    # Genome codes for D8_orchestrator: all known orchestrator codes
+    known_orchestrator_codes = {
+        "LGR", "AUTOG", "CREW", "SWARM", "SEMK", "PADK",
+        "ADK", "PYDAI", "LANG", "LLMIND", "SMOL", "DSPY",
+    }
     for fw in data:
-        assert fw["genome_dimension"] in {"LGR", "AUTOG", "CREW", "SWARM", "SEMK", "PADK", "ADK", "PYDAI", "LANG", "LLMIND"}
+        assert fw["genome_dimension"] in known_orchestrator_codes
 
 
 def test_list_frameworks_unknown_category_returns_empty(client):
