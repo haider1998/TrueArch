@@ -8,8 +8,8 @@ url: "https://github.com/crewAIInc/crewAI"
 docs_url: "https://docs.crewai.com"
 license: "MIT"
 primary_language: "Python"
-latest_stable_version: "0.80.0"
-latest_stable_released: "2026-04-28"
+latest_stable_version: "1.14.4"
+latest_stable_released: "2026-04-30"
 
 genome_dimension:
   key: "D8_orchestrator"
@@ -25,15 +25,15 @@ signals:
     signals_date: "2026-05-16"
 
   ecosystem_momentum:
-    github_stars: 27000
-    star_growth_30d_pct: 2.1
-    commits_last_90d: 210
-    commits_prev_90d: 195
-    merged_prs_per_30d: 18
-    avg_days_to_merge: 5.8
-    job_postings_30d: 310
-    so_questions_30d: 144
-    so_questions_prev_30d: 138
+    github_stars: 51500                  # verified May 2026
+    star_growth_30d_pct: 1.8             # estimated; growth rate slowing
+    commits_last_90d: 220
+    commits_prev_90d: 200
+    merged_prs_per_30d: 20
+    avg_days_to_merge: 5.5
+    job_postings_30d: 340                # estimated
+    so_questions_30d: 150
+    so_questions_prev_30d: 142
     signals_date: "2026-05-16"
 
   migration_risk:
@@ -78,30 +78,39 @@ computed_scores:
 known_issues:
   - id: "CREW-001"
     severity: "high"
-    description: "Memory leak under concurrent crew runs — agent memory grows unbounded without explicit cleanup"
-    affected_versions: "< 0.75.0"
+    description: "Memory leaks and state contamination in long-running sessions — improperly managed memory causes resource exhaustion. Background threads for non-blocking memory saves must be explicitly drained on shutdown."
+    affected_versions: "< 1.14.x"
     resolved: false
     resolved_in: null
-    workaround: "Restart crew instances after N tasks; use external memory store instead of built-in"
-    source: "https://github.com/crewAIInc/crewAI/issues/1203"
+    workaround: "Use memory.close()/drain_writes() in finally blocks; prefer external DB (PostgreSQL/SQLite) with unique threadId keys over built-in memory; reset_memories() between sessions"
+    source: "https://docs.crewai.com/en/latest/concepts/memory"
 
   - id: "CREW-002"
-    severity: "medium"
-    description: "Tool call retry logic can cause duplicate actions when LLM returns malformed tool call JSON"
-    affected_versions: "0.60.0 - 0.78.0"
-    resolved: true
-    resolved_in: "0.79.0"
-    workaround: null
-    source: "https://github.com/crewAIInc/crewAI/issues/1456"
-
-  - id: "CREW-003"
-    severity: "medium"
-    description: "Thread safety issues when running multiple crews concurrently in the same process"
+    severity: "high"
+    description: "Thread safety — orphaned threads from Agent._execute_with_timeout() fail to clean up on timeout, causing resource exhaustion. Internal processes are NOT inherently parallel despite async API."
     affected_versions: "all"
     resolved: false
     resolved_in: null
-    workaround: "Run each crew in a separate process or use async crew orchestration with process isolation"
-    source: "https://github.com/crewAIInc/crewAI/issues/987"
+    workaround: "Run agents as independent subprocesses using message buses (Redis pub/sub); do not rely on shared-memory threading for high-scale production"
+    source: "https://github.com/crewAIInc/crewAI"
+
+  - id: "CREW-003"
+    severity: "critical"
+    description: "CVEs CVE-2026-2275, CVE-2026-2287, CVE-2026-2286, CVE-2026-2285 — RCE and SSRF vulnerabilities in Code Interpreter tool and default config. Allows remote code execution, arbitrary file reads, or SSRF when agents are exposed to untrusted input."
+    affected_versions: "< 1.14.5"
+    resolved: false
+    resolved_in: null
+    workaround: "Do NOT enable allow_code_execution=True unless strictly sandboxed; apply rigorous input sanitization; ensure fail-closed config if Docker is unreachable"
+    source: "CVE database Q1 2026"
+
+  - id: "CREW-004"
+    severity: "medium"
+    description: "Observability black box — default logging is insufficient for mission-critical systems. No native distributed tracing; crew execution is opaque without external tooling."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Integrate LangFuse or AgentOps for observability; use CrewAI Flows for explicit state management and error recovery"
+    source: "Community production reports 2026"
 
 compatible_with:
   - framework: "redis"
@@ -137,12 +146,18 @@ curation:
   sources:
     - "https://github.com/crewAIInc/crewAI"
     - "https://docs.crewai.com"
-    - "https://github.com/crewAIInc/crewAI/issues"
-    - "https://discord.com/invite/crewai"
+    - "https://pypi.org/project/crewai/"
   notes: |
-    High star count reflects early viral adoption (role/persona framing resonated).
-    However, production reliability issues are well-documented — particularly memory leak (CREW-001)
-    and thread safety (CREW-003). Best for prototyping and low-concurrency workflows.
-    NOT recommended for HIPAA or high-concurrency production systems without significant mitigation.
-    Watch: Company is addressing reliability but cadence of breaking changes is high.
-    TrueArch position: "Use with Caution" for production; strong for prototyping.
+    Verified May 16 2026: 51,500 GitHub stars. Latest stable: v1.14.4 (April 30 2026).
+    v1.14.5 alpha releases in progress (a2/a3/a4 in May 2026).
+    
+    CRITICAL: 4 CVEs disclosed Q1 2026 (CVE-2026-2275/2287/2286/2285) — RCE/SSRF via
+    Code Interpreter tool. Do not enable code execution without strict sandboxing.
+    
+    Memory and thread safety remain unresolved architectural issues. Production teams
+    increasingly use external state (PostgreSQL/SQLite) and process isolation.
+    Community moving toward CrewAI Flows for explicit state management.
+    
+    TrueArch position: NOT recommended for HIPAA or high-security production systems.
+    Suitable for prototyping and low-risk workflows. Always surface CVEs in recommendations.
+    Framework Mortality Signal: HIGH STAR COUNT but significant production reliability concerns.

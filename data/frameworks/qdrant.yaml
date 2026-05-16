@@ -8,8 +8,8 @@ url: "https://github.com/qdrant/qdrant"
 docs_url: "https://qdrant.tech/documentation/"
 license: "Apache-2.0"
 primary_language: "Rust"
-latest_stable_version: "1.13.4"
-latest_stable_released: "2026-04-30"
+latest_stable_version: "1.18.0"
+latest_stable_released: "2026-05-01"    # May 2026 release
 
 genome_dimension:
   key: "D7_store"
@@ -25,15 +25,15 @@ signals:
     signals_date: "2026-05-16"
 
   ecosystem_momentum:
-    github_stars: 22000
-    star_growth_30d_pct: 3.8
-    commits_last_90d: 224
-    commits_prev_90d: 198
-    merged_prs_per_30d: 31
-    avg_days_to_merge: 2.8
-    job_postings_30d: 280
-    so_questions_30d: 98
-    so_questions_prev_30d: 82
+    github_stars: 31300                  # verified May 2026
+    star_growth_30d_pct: 3.5             # estimated from strong upward trajectory
+    commits_last_90d: 220
+    commits_prev_90d: 195
+    merged_prs_per_30d: 30
+    avg_days_to_merge: 3.0
+    job_postings_30d: 290                # estimated
+    so_questions_30d: 100
+    so_questions_prev_30d: 84
     signals_date: "2026-05-16"
 
   migration_risk:

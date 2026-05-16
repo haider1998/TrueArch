@@ -6,9 +6,9 @@ category: "memory"
 subcategory: "in-memory-data-store"
 url: "https://github.com/redis/redis"
 docs_url: "https://redis.io/docs/"
-license: "RSALv2"                   # NOTE: License changed from BSD in 2024 — see curation notes
+license: "RSALv2+SSPL (7.2-7.x) / AGPLv3 (8.0+) — see REDIS-002"  # Redis 8 re-introduced OSI-approved AGPLv3
 primary_language: "C"
-latest_stable_version: "8.0.1"
+latest_stable_version: "8.6.3"           # latest minor in 8.x line as of May 2026
 latest_stable_released: "2026-05-01"
 
 genome_dimension:
@@ -25,13 +25,13 @@ signals:
     signals_date: "2026-05-16"
 
   ecosystem_momentum:
-    github_stars: 67000
-    star_growth_30d_pct: 0.4         # Mature project — stable, not hypergrowth
+    github_stars: 74400                  # verified May 2026
+    star_growth_30d_pct: 0.3             # mature project; stable, not hypergrowth
     commits_last_90d: 180
     commits_prev_90d: 172
     merged_prs_per_30d: 22
     avg_days_to_merge: 4.1
-    job_postings_30d: 1840           # Enormous installed base demand
+    job_postings_30d: 1840               # massive installed base demand
     so_questions_30d: 520
     so_questions_prev_30d: 515
     signals_date: "2026-05-16"
@@ -86,12 +86,12 @@ known_issues:
     source: "https://redis.io/docs/manual/eviction/"
 
   - id: "REDIS-002"
-    severity: "high"
-    description: "LICENSE CHANGE: Redis changed from BSD to RSALv2+SSPL in 2024 — impacts cloud provider redistribution. Valkey is the community OSS fork."
-    affected_versions: ">= 7.4.0"
+    severity: "medium"
+    description: "LICENSE HISTORY: Redis changed from BSD to RSALv2+SSPL in March 2024 (v7.4+), then introduced AGPLv3 (OSI-approved) in Redis 8.0+ (May 2025). Valkey (Linux Foundation, BSD 3-Clause) was forked by AWS/Google/Oracle as the community OSS alternative and is a drop-in replacement for Redis 7.2."
+    affected_versions: "7.4.0 - 7.x (RSALv2+SSPL); 8.0+ (AGPLv3)"
     resolved: false
     resolved_in: null
-    workaround: "Use Valkey for pure OSS requirement; use Redis Cloud/AWS ElastiCache for managed; use Redis 7.2.x LTS for BSD license"
+    workaround: "Use Redis 8.x (AGPLv3) for OSI-compliant open source; use Valkey for BSD-licensed drop-in alternative; use Redis Cloud/AWS ElastiCache for managed enterprise use"
     source: "https://redis.io/blog/redis-adopts-dual-source-available-licensing/"
 
   - id: "REDIS-003"
@@ -142,16 +142,21 @@ curation:
     - "https://github.com/redis/redis"
     - "https://redis.io/docs/"
     - "https://redis.io/blog/redis-adopts-dual-source-available-licensing/"
+    - "https://valkey.io"
+    - "https://linuxfoundation.org/projects/valkey"
   notes: |
-    Battle-tested, extremely mature (10+ years production use). Lowest production incident
-    rate of any framework in our database. Effectively the default choice for session memory
-    and agent state caching.
+    Verified May 16 2026: 74,400 GitHub stars. Latest in 8.x line: 8.6.3 (May 2026).
     
-    IMPORTANT LICENSE NOTE (REDIS-002): The 2024 license change (BSD → RSALv2+SSPL) is the
-    most significant development in the Redis ecosystem. For open-source projects or cloud
-    provider workloads, evaluate Valkey (OSS fork). For internal/enterprise use, RSALv2 is
-    fine. TrueArch must flag this in every Redis recommendation.
+    LICENSE SITUATION (important for every recommendation):
+    - Redis 7.2.x and earlier: BSD 3-Clause
+    - Redis 7.4.x - 7.x: RSALv2 + SSPL (NOT OSI-approved)
+    - Redis 8.0+ (May 2025+): AGPLv3 added as option (OSI-approved)
+    - Valkey: BSD 3-Clause fork by Linux Foundation; backed by AWS, Google, Oracle; 
+      drop-in compatible with Redis 7.2; own roadmap with multi-threaded I/O improvements
     
-    TrueArch position: Recommend Redis for production agent memory in most cases.
-    Always flag the license consideration. Suggest Valkey as the OSS alternative.
-    Note REDIS-001 (TTL discipline) in every recommendation — it's a common mistake.
+    For most production AI systems: Redis 8.x (AGPLv3) is fine.
+    For strict BSD/Apache-only policy: use Valkey.
+    For managed cloud: AWS ElastiCache, GCP Memorystore both support Redis/Valkey.
+    
+    TrueArch must surface license context in every Redis recommendation.
+    Default: Recommend Redis 8.x for production agent memory. Note Valkey as OSS alternative.

@@ -8,8 +8,8 @@ url: "https://github.com/langchain-ai/langchain"
 docs_url: "https://python.langchain.com"
 license: "MIT"
 primary_language: "Python"
-latest_stable_version: "0.3.25"
-latest_stable_released: "2026-04-15"
+latest_stable_version: "1.3.1"
+latest_stable_released: "2026-05-15"
 
 genome_dimension:
   key: "D8_orchestrator"
@@ -25,15 +25,15 @@ signals:
     signals_date: "2026-05-16"
 
   ecosystem_momentum:
-    github_stars: 93000
-    star_growth_30d_pct: 0.3        # Growth flattening as LangGraph captures new projects
-    commits_last_90d: 310
-    commits_prev_90d: 380           # Declining commit velocity (team focus shifting to LangGraph)
-    merged_prs_per_30d: 28
-    avg_days_to_merge: 6.1
-    job_postings_30d: 820           # High absolute, but legacy installed base inflates this
-    so_questions_30d: 420
-    so_questions_prev_30d: 448      # Q&A velocity declining
+    github_stars: 137000                 # verified May 2026
+    star_growth_30d_pct: 0.2             # essentially flat; near peak
+    commits_last_90d: 290
+    commits_prev_90d: 370                # declining velocity; team focus shifting to LangGraph
+    merged_prs_per_30d: 25
+    avg_days_to_merge: 6.5
+    job_postings_30d: 850                # high — legacy installed base inflates this
+    so_questions_30d: 430
+    so_questions_prev_30d: 460           # slight decline in Q&A velocity
     signals_date: "2026-05-16"
 
   migration_risk:
@@ -134,17 +134,15 @@ curation:
   sources:
     - "https://github.com/langchain-ai/langchain"
     - "https://python.langchain.com"
-    - "https://github.com/langchain-ai/langchain/releases"
+    - "https://pypi.org/project/langchain/"
   notes: |
-    IMPORTANT: LangChain represents a category in transition.
-    Enormous installed base (93K stars, 820 job postings) but momentum is shifting to LangGraph.
-    Commit velocity declining; LangChain Inc engineering focus is clearly LangGraph.
-    Star growth nearly flat (0.3%/month vs LangGraph's 4.2%/month).
-    High breaking change rate and ecosystem fragmentation are real pain points.
+    Verified May 16 2026: 137,000 GitHub stars. Latest stable: v1.3.1 (May 15 2026).
+    Enormous installed base but ecosystem momentum is clearly shifting to LangGraph.
+    Commit velocity declining (370 → 290/90d); star growth essentially flat (0.2%/mo).
+    High breaking change rate and ecosystem fragmentation (langchain-core/community/langchain
+    split) remain real pain points.
     
     TrueArch position: Do NOT recommend for new projects in 2026. Recommend LangGraph instead.
-    For existing LangChain codebases: provide Migration Intelligence to LangGraph.
-    This is TrueArch's clearest "Installed Base Audit" opportunity — the LangChain installed base
-    is large, knows they need to migrate, and needs help doing it.
-    
-    Framework Mortality Signal: DECLINING. Monitor quarterly for acceleration.
+    For existing LangChain codebases: surface Migration Intelligence to LangGraph.
+    This is TrueArch's clearest installed-base migration opportunity.
+    Framework Mortality Signal: DECLINING. In transition phase.

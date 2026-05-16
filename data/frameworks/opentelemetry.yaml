@@ -8,8 +8,8 @@ url: "https://github.com/open-telemetry/opentelemetry-python"
 docs_url: "https://opentelemetry.io/docs/"
 license: "Apache-2.0"
 primary_language: "Multi"           # Python, Go, Java, JS, Rust, etc.
-latest_stable_version: "1.24.0"    # Python SDK
-latest_stable_released: "2026-04-10"
+latest_stable_version: "1.41.1"          # opentelemetry-sdk on PyPI, April 24 2026
+latest_stable_released: "2026-04-24"
 
 genome_dimension:
   key: "D9_observability"
@@ -128,19 +128,16 @@ curation:
   confidence_override: null
   sources:
     - "https://github.com/open-telemetry/opentelemetry-python"
-    - "https://opentelemetry.io/docs/"
+    - "https://pypi.org/project/opentelemetry-sdk/"
     - "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
   notes: |
+    Verified May 16 2026: opentelemetry-sdk v1.41.1 on PyPI (released April 24 2026).
     CNCF-graduated project — the most strategically safe observability choice.
     Vendor-neutral: exports to Jaeger, Zipkin, Prometheus, Datadog, Grafana, etc.
     
-    For AI/LLM observability: use the gen_ai.* semantic conventions (experimental but
-    de-facto standard). LangSmith is better for LangChain-specific LLM tracing.
+    For AI/LLM observability: the gen_ai.* semantic conventions are experimental but
+    de-facto standard. Be aware they may change in future versions (OTEL-002).
     
-    TrueArch governance alignment: OTEL is exactly the "audit trail from Day 1" approach
-    TrueArch promotes. Every TrueArch recommendation that includes observability should
-    default to OTEL as the standard.
-    
-    TrueArch position: Default recommendation for all production systems.
-    Exception: Pure LangChain/LangGraph stacks where LangSmith may be simpler to set up.
-    Flag: gen_ai.* convention stability (OTEL-002) in AI system recommendations.
+    TrueArch position: Default recommendation for all production systems needing observability.
+    Exception: Pure LangChain/LangGraph stacks where LangSmith is simpler to set up.
+    Flag: gen_ai.* convention stability in every AI system recommendation.
