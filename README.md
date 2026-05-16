@@ -1,3 +1,13 @@
+---
+title: TrueArch MCP
+emoji: 🏛️
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+pinned: false
+short_description: Deterministic AI architecture intelligence MCP server
+---
+
 # TrueArch
 
 > **Architecture intelligence layer for AI-native engineering.**  
