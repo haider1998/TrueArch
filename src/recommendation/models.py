@@ -30,6 +30,7 @@ class ScaleTier(str, Enum):
 
 class PriorityAxis(str, Enum):
     LOW_LATENCY      = "low_latency"
+    PERFORMANCE      = "performance"     # alias for low_latency — accepted from user input
     COST_EFFICIENCY  = "cost_efficiency"
     RELIABILITY      = "reliability"
     DEVELOPER_SPEED  = "developer_speed"

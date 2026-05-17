@@ -120,7 +120,8 @@ def _priority_modifier(fw: FrameworkSchema, priority: PriorityAxis, base_score: 
     """Adjust score based on the developer's primary optimization axis."""
     scores = fw.computed_scores
 
-    if priority == PriorityAxis.LOW_LATENCY:
+    # Treat `performance` as an alias for `low_latency` (BUG-001 fix)
+    if priority in (PriorityAxis.LOW_LATENCY, PriorityAxis.PERFORMANCE):
         # Low incident rate + high stability = low-latency friendly
         if (scores.production_stability or 0) >= 80:
             return base_score + 8
@@ -231,6 +232,75 @@ def _generate_reason(
     return "; ".join(parts)
 
 
+# ── Known-deprecated framework registry ──────────────────────────────────────
+# Maps framework_id patterns → deprecation/caution message
+_DEPRECATED_FRAMEWORKS: Dict[str, str] = {
+    "autogen":     "AutoGen v0.2 is deprecated — migrate to AutoGen v0.4 (AgentChat API) or Microsoft's AG2 fork.",
+    "langchain":   "LangChain has high breaking-change velocity — prefer LangGraph for stateful orchestration.",
+    "chroma":      "Chroma is a prototype-only vector DB — use Qdrant or pgvector for production workloads.",
+    "faiss":       "FAISS has no built-in production server or replication — use Qdrant for production.",
+}
+
+# Cloud regions that satisfy GDPR EU data residency requirements
+_GDPR_SAFE_CLOUDS = {"aws": "eu-west-1, eu-central-1", "gcp": "europe-west1", "azure": "northeurope, westeurope"}
+
+
+def _generate_global_warnings(query: StackQuery, frameworks: Dict[str, FrameworkSchema]) -> List[str]:
+    """
+    BUG-003 fix: Generate query-level warnings that are not framework-specific.
+    Covers: cloud/compliance conflicts, deprecated framework mentions, known issues.
+    """
+    warnings: List[str] = []
+    problem_lower = query.problem.lower()
+
+    # 1. Cloud / GDPR conflict
+    if ComplianceFlag.GDPR in query.compliance and query.cloud:
+        cloud = query.cloud.lower()
+        safe_regions = _GDPR_SAFE_CLOUDS.get(cloud)
+        if safe_regions:
+            warnings.append(
+                f"⚠ GDPR + {cloud.upper()}: EU data residency required. "
+                f"Use region(s): {safe_regions}. Avoid sending EU patient data to US-only APIs."
+            )
+        else:
+            warnings.append(
+                f"⚠ GDPR compliance: Verify that '{cloud}' region supports EU data residency."
+            )
+
+    # 2. HIPAA + hosted/US-SaaS cloud AI API mention
+    if ComplianceFlag.HIPAA in query.compliance:
+        for saas_term in ["openai api", "anthropic api", "pinecone", "hosted llm"]:
+            if saas_term in problem_lower:
+                warnings.append(
+                    f"⚠ HIPAA: '{saas_term}' requires a signed BAA before PHI can flow through it. "
+                    f"Verify BAA availability or use a self-hosted model."
+                )
+
+    # 3. Deprecated / cautioned framework mentions in the problem
+    for fw_pattern, msg in _DEPRECATED_FRAMEWORKS.items():
+        if fw_pattern in problem_lower:
+            warnings.append(f"⚠ Framework Caution: {msg}")
+
+    # 4. Hallucination guard: mention of unrecognized framework names
+    known_ids = set(frameworks.keys())
+    # Extract potential framework names (capitalized words adjacent to tech keywords)
+    tech_keywords = ["framework", "library", "sdk", "db", "database", "agent", "memory", "platform"]
+    words = re.findall(r'[A-Z][a-zA-Z0-9]+(?:[A-Z][a-zA-Z0-9]+)+', query.problem)
+    for word in words:
+        normalized = word.lower().replace(" ", "_")
+        if normalized not in known_ids and any(kw in problem_lower for kw in tech_keywords):
+            # Only warn if it looks like a product name (CamelCase, not a common English word)
+            common_english = {"Python", "Ruby", "Java", "JavaScript", "TypeScript", "AWS", "GCP", "Azure",
+                              "HIPAA", "GDPR", "SOC2", "Fortune", "GitHub", "Docker", "Kubernetes"}
+            if word not in common_english:
+                warnings.append(
+                    f"⚠ Unrecognized framework '{word}': not found in TrueArch Genome taxonomy. "
+                    f"Verify this framework exists before committing to it."
+                )
+
+    return list(dict.fromkeys(warnings))  # deduplicate preserving order
+
+
 # ── Main Engine ───────────────────────────────────────────────────────────────
 
 class StackRecommendationEngine:
@@ -248,6 +318,9 @@ class StackRecommendationEngine:
         layer_results: Dict[str, FrameworkChoice] = {}
         global_warnings: List[str] = []
         tradeoff_notes: List[str] = []
+
+        # BUG-003 fix: query-level warnings (compliance/cloud conflicts, deprecated frameworks, hallucinations)
+        global_warnings.extend(_generate_global_warnings(query, self.frameworks))
 
         for layer in target_layers:
             choice = self._recommend_layer(layer, query)

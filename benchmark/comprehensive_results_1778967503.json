@@ -1,0 +1,791 @@
+{
+  "meta": {
+    "timestamp": "2026-05-17T03:03:42.768013",
+    "models": [
+      "gemini-flash-latest",
+      "gemini-pro-latest"
+    ],
+    "total_tasks": 20,
+    "tasks_by_jtbd": {
+      "J1": 9,
+      "J2": 2,
+      "J3": 2,
+      "J4": 5,
+      "J5": 2
+    },
+    "tasks_by_category": {
+      "Greenfield": 3,
+      "Audit": 2,
+      "Migration": 2,
+      "Guardrail": 3,
+      "Stakeholder": 2,
+      "Edge Case": 8
+    }
+  },
+  "results": {
+    "gemini-flash-latest": {
+      "j1_greenfield_saas": {
+        "description": "We're building a B2B SaaS platform for AI-powered contract analysis. Python team, 50 enterprise clients, need SOC2 compliance, want to use LangChain.",
+        "jtbd": "J1",
+        "category": "Greenfield",
+        "expected_truearch_value": "SOC2 enforcement + LangGraph override of LangChain for stateful analysis",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.384500043466687,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 3.6794169573113322,
+          "result": {
+            "success": false,
+            "latency_ms": 3.1653749756515026,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j1_greenfield_realtime": {
+        "description": "building something like perplexity but for codebases. needs to be real-time, low latency, concurrent users, no idea about stack",
+        "jtbd": "J1",
+        "category": "Greenfield",
+        "expected_truearch_value": "Correctly infer high-concurrency, real-time RAG stack",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.022749977186322,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.15670800348743796,
+          "result": {
+            "success": false,
+            "latency_ms": 1.9569589640013874,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j1_greenfield_startup_budget": {
+        "description": "solo founder, limited budget, building an AI writing assistant. want to use openai + next.js + supabase. is this okay?",
+        "jtbd": "J1",
+        "category": "Greenfield",
+        "expected_truearch_value": "Cost-optimized stack validation, confirm/correct the user's assumptions",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.6016659792512655,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.6739170057699084,
+          "result": {
+            "success": false,
+            "latency_ms": 1.8780839745886624,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j2_audit_langchain_old": {
+        "description": "we built our product 18 months ago with LangChain v0.1, pinecone, and flask. 500 daily users. is our stack still good?",
+        "jtbd": "J2",
+        "category": "Audit",
+        "expected_truearch_value": "Flag LangChain v0.1 as critical debt, recommend migration path",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.961665973998606,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.408999971114099,
+          "result": {
+            "success": false,
+            "latency_ms": 1.4308749814517796,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j2_audit_crewai_prod": {
+        "description": "running crewai in production for 6 months, seeing memory issues under load. is this a known issue? should we switch?",
+        "jtbd": "J2",
+        "category": "Audit",
+        "expected_truearch_value": "Correctly identify CrewAI memory issues and recommend LangGraph migration",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.736249996814877,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1026670108549297,
+          "result": {
+            "success": false,
+            "latency_ms": 3.638792026322335,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j3_migration_langchain_to_langgraph": {
+        "description": "Our team wants to migrate from LangChain to LangGraph. We have 40k lines of LangChain code. What's the risk, effort, and recommended path?",
+        "jtbd": "J3",
+        "category": "Migration",
+        "expected_truearch_value": "Structured migration plan with risk scoring",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.982333011459559,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1123750009573996,
+          "result": {
+            "success": false,
+            "latency_ms": 2.913790987804532,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j3_migration_chroma_to_prod": {
+        "description": "we started with chroma as vector db for prototyping, now going to production. whats the best production vector db to migrate to?",
+        "jtbd": "J3",
+        "category": "Migration",
+        "expected_truearch_value": "Score-ranked vector DB migration recommendations",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.7299170033074915,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1197910062037408,
+          "result": {
+            "success": false,
+            "latency_ms": 3.5997499944642186,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j4_guardrail_hipaa_crewai": {
+        "description": "im building a hipaa app, need something for agents, maybe crewai? must be secure.",
+        "jtbd": "J4",
+        "category": "Guardrail",
+        "expected_truearch_value": "CRITICAL: Override CrewAI for HIPAA, enforce pgvector over hosted DBs, add audit trail requirements",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.9814579864032567,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1085840524174273,
+          "result": {
+            "success": false,
+            "latency_ms": 3.871207998599857,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j4_guardrail_deprecated_framework": {
+        "description": "want to use AutoGen v0.2 for my multi-agent trading bot. is this a good idea?",
+        "jtbd": "J4",
+        "category": "Guardrail",
+        "expected_truearch_value": "Flag AutoGen v0.2 deprecation, recommend current alternative",
+        "baseline": {
+          "success": false,
+          "latency_ms": 4.00137499673292,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.1674999948590994,
+          "result": {
+            "success": false,
+            "latency_ms": 3.8782079936936498,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j4_guardrail_gdpr_eu": {
+        "description": "building an AI assistant for a German healthcare company. patients are EU citizens. what stack? can we use US-based cloud AI APIs?",
+        "jtbd": "J4",
+        "category": "Guardrail",
+        "expected_truearch_value": "GDPR enforcement \u2014 block US-only SaaS LLM APIs, enforce EU data residency options",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.8566669896245003,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.9327919688075781,
+          "result": {
+            "success": false,
+            "latency_ms": 3.3764999825507402,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j5_stakeholder_cto_justification": {
+        "description": "I chose LangGraph over CrewAI for our enterprise product. My CTO is asking why. I need a clear, evidence-backed justification.",
+        "jtbd": "J5",
+        "category": "Stakeholder",
+        "expected_truearch_value": "Generate a decision rationale with scores, tradeoffs, and rejected alternatives",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.8426250317133963,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1091670021414757,
+          "result": {
+            "success": false,
+            "latency_ms": 3.322624950669706,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j5_stakeholder_board_deck": {
+        "description": "need to present our AI infrastructure stack to our board. we use langgraph, qdrant, opentelemetry, fastapi. how do i explain why these are the right choices?",
+        "jtbd": "J5",
+        "category": "Stakeholder",
+        "expected_truearch_value": "Business-language justification with risk, stability, and competitive positioning",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.575958020519465,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1850420269183815,
+          "result": {
+            "success": false,
+            "latency_ms": 4.522500035818666,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_completely_vague": {
+        "description": "i want to build something with AI. help.",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Handle maximum ambiguity gracefully \u2014 ask clarifying questions OR use prototype defaults",
+        "baseline": {
+          "success": false,
+          "latency_ms": 4.115292045753449,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.0985410190187395,
+          "result": {
+            "success": false,
+            "latency_ms": 3.6783749819733202,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_contradictory_requirements": {
+        "description": "need zero latency, zero cost, maximum security, 10 billion users, and should be done in a week by one person",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Flag contradictions, prioritize sanely, surface tradeoffs",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.9320829887874424,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.6282920367084444,
+          "result": {
+            "success": false,
+            "latency_ms": 1.744957990013063,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_wrong_language_assumption": {
+        "description": "I'm building a multi-agent system in Ruby. What AI orchestration framework should I use?",
+        "jtbd": "J4",
+        "category": "Edge Case",
+        "expected_truearch_value": "Handle non-Python language gap \u2014 either recommend Python SDKs with REST bridge or correct the assumption",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.2655420363880694,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.8739999611862004,
+          "result": {
+            "success": false,
+            "latency_ms": 1.9025420187972486,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_hallucination_trap": {
+        "description": "we want to use MemoryOS, AgentCore Pro, and NeuralBridge for our AI stack. are these good choices?",
+        "jtbd": "J4",
+        "category": "Edge Case",
+        "expected_truearch_value": "Correctly identify made-up/hallucinated framework names and reject or flag them",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.9771670340560377,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.5946670426055789,
+          "result": {
+            "success": false,
+            "latency_ms": 2.3224580218084157,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_enterprise_multicloud": {
+        "description": "Fortune 500 company. 50M users. Must work on AWS + Azure + GCP. HIPAA + SOC2. 5 year horizon. What AI stack?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Cloud-agnostic stack with maximum governance, multi-cloud portability, compliance double-check",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.9946249667555094,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.9215830359607935,
+          "result": {
+            "success": false,
+            "latency_ms": 2.5379169965162873,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_cost_first_startup": {
+        "description": "just got into YC. ramen budget. building AI for 5-10 early users. what's the cheapest way to get started without locking in bad choices?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Cost-optimized prototype stack with clear upgrade path to production",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.248416993301362,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.4425419610925019,
+          "result": {
+            "success": false,
+            "latency_ms": 1.3901250204071403,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_agentic_autonomous_coding": {
+        "description": "building an autonomous coding agent that writes, tests, and deploys code. needs MCP integration. what's the best framework?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "MCP-native recommendation, highlight agent compatibility scores",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.2101670037955046,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.7552079623565078,
+          "result": {
+            "success": false,
+            "latency_ms": 2.4658750044181943,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_multimodal_pipeline": {
+        "description": "we process images, audio, and text together in a single AI pipeline. document understanding + voice. what stack handles this?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Multimodal-capable orchestration and storage recommendations",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.6458750362508,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.13437500456348062,
+          "result": {
+            "success": false,
+            "latency_ms": 2.6066669961437583,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      }
+    },
+    "gemini-pro-latest": {
+      "j1_greenfield_saas": {
+        "description": "We're building a B2B SaaS platform for AI-powered contract analysis. Python team, 50 enterprise clients, need SOC2 compliance, want to use LangChain.",
+        "jtbd": "J1",
+        "category": "Greenfield",
+        "expected_truearch_value": "SOC2 enforcement + LangGraph override of LangChain for stateful analysis",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.9236249974928796,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.7884170045144856,
+          "result": {
+            "success": false,
+            "latency_ms": 2.737874980084598,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j1_greenfield_realtime": {
+        "description": "building something like perplexity but for codebases. needs to be real-time, low latency, concurrent users, no idea about stack",
+        "jtbd": "J1",
+        "category": "Greenfield",
+        "expected_truearch_value": "Correctly infer high-concurrency, real-time RAG stack",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.8348330524750054,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.1699579879641533,
+          "result": {
+            "success": false,
+            "latency_ms": 2.828083001077175,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j1_greenfield_startup_budget": {
+        "description": "solo founder, limited budget, building an AI writing assistant. want to use openai + next.js + supabase. is this okay?",
+        "jtbd": "J1",
+        "category": "Greenfield",
+        "expected_truearch_value": "Cost-optimized stack validation, confirm/correct the user's assumptions",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.5103329573757946,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.0502500226721168,
+          "result": {
+            "success": false,
+            "latency_ms": 3.2793330028653145,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j2_audit_langchain_old": {
+        "description": "we built our product 18 months ago with LangChain v0.1, pinecone, and flask. 500 daily users. is our stack still good?",
+        "jtbd": "J2",
+        "category": "Audit",
+        "expected_truearch_value": "Flag LangChain v0.1 as critical debt, recommend migration path",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.0929999775253236,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.0962079977616668,
+          "result": {
+            "success": false,
+            "latency_ms": 3.7084579817019403,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j2_audit_crewai_prod": {
+        "description": "running crewai in production for 6 months, seeing memory issues under load. is this a known issue? should we switch?",
+        "jtbd": "J2",
+        "category": "Audit",
+        "expected_truearch_value": "Correctly identify CrewAI memory issues and recommend LangGraph migration",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.888209001161158,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1117500253021717,
+          "result": {
+            "success": false,
+            "latency_ms": 3.5379580222070217,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j3_migration_langchain_to_langgraph": {
+        "description": "Our team wants to migrate from LangChain to LangGraph. We have 40k lines of LangChain code. What's the risk, effort, and recommended path?",
+        "jtbd": "J3",
+        "category": "Migration",
+        "expected_truearch_value": "Structured migration plan with risk scoring",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.805292013566941,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.37095899460837245,
+          "result": {
+            "success": false,
+            "latency_ms": 1.8632090068422258,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j3_migration_chroma_to_prod": {
+        "description": "we started with chroma as vector db for prototyping, now going to production. whats the best production vector db to migrate to?",
+        "jtbd": "J3",
+        "category": "Migration",
+        "expected_truearch_value": "Score-ranked vector DB migration recommendations",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.7239170158281922,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.7732079830020666,
+          "result": {
+            "success": false,
+            "latency_ms": 1.5774170169606805,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j4_guardrail_hipaa_crewai": {
+        "description": "im building a hipaa app, need something for agents, maybe crewai? must be secure.",
+        "jtbd": "J4",
+        "category": "Guardrail",
+        "expected_truearch_value": "CRITICAL: Override CrewAI for HIPAA, enforce pgvector over hosted DBs, add audit trail requirements",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.736917056608945,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.6034169928170741,
+          "result": {
+            "success": false,
+            "latency_ms": 1.6853330307640135,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j4_guardrail_deprecated_framework": {
+        "description": "want to use AutoGen v0.2 for my multi-agent trading bot. is this a good idea?",
+        "jtbd": "J4",
+        "category": "Guardrail",
+        "expected_truearch_value": "Flag AutoGen v0.2 deprecation, recommend current alternative",
+        "baseline": {
+          "success": false,
+          "latency_ms": 1.9329579663462937,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.1378749730065465,
+          "result": {
+            "success": false,
+            "latency_ms": 2.834332990460098,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j4_guardrail_gdpr_eu": {
+        "description": "building an AI assistant for a German healthcare company. patients are EU citizens. what stack? can we use US-based cloud AI APIs?",
+        "jtbd": "J4",
+        "category": "Guardrail",
+        "expected_truearch_value": "GDPR enforcement \u2014 block US-only SaaS LLM APIs, enforce EU data residency options",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.109457960817963,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.8325409726239741,
+          "result": {
+            "success": false,
+            "latency_ms": 2.7421669801697135,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j5_stakeholder_cto_justification": {
+        "description": "I chose LangGraph over CrewAI for our enterprise product. My CTO is asking why. I need a clear, evidence-backed justification.",
+        "jtbd": "J5",
+        "category": "Stakeholder",
+        "expected_truearch_value": "Generate a decision rationale with scores, tradeoffs, and rejected alternatives",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.2438330235891044,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.8048329618759453,
+          "result": {
+            "success": false,
+            "latency_ms": 2.7305829571560025,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "j5_stakeholder_board_deck": {
+        "description": "need to present our AI infrastructure stack to our board. we use langgraph, qdrant, opentelemetry, fastapi. how do i explain why these are the right choices?",
+        "jtbd": "J5",
+        "category": "Stakeholder",
+        "expected_truearch_value": "Business-language justification with risk, stability, and competitive positioning",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.7206659908406436,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1088330065831542,
+          "result": {
+            "success": false,
+            "latency_ms": 3.717999963555485,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_completely_vague": {
+        "description": "i want to build something with AI. help.",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Handle maximum ambiguity gracefully \u2014 ask clarifying questions OR use prototype defaults",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.9553329697810113,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.244792016223073,
+          "result": {
+            "success": false,
+            "latency_ms": 4.408416978549212,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_contradictory_requirements": {
+        "description": "need zero latency, zero cost, maximum security, 10 billion users, and should be done in a week by one person",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Flag contradictions, prioritize sanely, surface tradeoffs",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.980666991788894,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1187089839950204,
+          "result": {
+            "success": false,
+            "latency_ms": 3.4335419768467546,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_wrong_language_assumption": {
+        "description": "I'm building a multi-agent system in Ruby. What AI orchestration framework should I use?",
+        "jtbd": "J4",
+        "category": "Edge Case",
+        "expected_truearch_value": "Handle non-Python language gap \u2014 either recommend Python SDKs with REST bridge or correct the assumption",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.4391249646432698,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.2888329802080989,
+          "result": {
+            "success": false,
+            "latency_ms": 3.378499997779727,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_hallucination_trap": {
+        "description": "we want to use MemoryOS, AgentCore Pro, and NeuralBridge for our AI stack. are these good choices?",
+        "jtbd": "J4",
+        "category": "Edge Case",
+        "expected_truearch_value": "Correctly identify made-up/hallucinated framework names and reject or flag them",
+        "baseline": {
+          "success": false,
+          "latency_ms": 2.6502080145291984,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.8578750314190984,
+          "result": {
+            "success": false,
+            "latency_ms": 2.9183750157244503,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_enterprise_multicloud": {
+        "description": "Fortune 500 company. 50M users. Must work on AWS + Azure + GCP. HIPAA + SOC2. 5 year horizon. What AI stack?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Cloud-agnostic stack with maximum governance, multi-cloud portability, compliance double-check",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.077082976233214,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 1.1175840045325458,
+          "result": {
+            "success": false,
+            "latency_ms": 3.1646250281482935,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_cost_first_startup": {
+        "description": "just got into YC. ramen budget. building AI for 5-10 early users. what's the cheapest way to get started without locking in bad choices?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Cost-optimized prototype stack with clear upgrade path to production",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.758957958780229,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.8601250010542572,
+          "result": {
+            "success": false,
+            "latency_ms": 4.662665945943445,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_agentic_autonomous_coding": {
+        "description": "building an autonomous coding agent that writes, tests, and deploys code. needs MCP integration. what's the best framework?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "MCP-native recommendation, highlight agent compatibility scores",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.9979160064831376,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.5293329595588148,
+          "result": {
+            "success": false,
+            "latency_ms": 1.8297909991815686,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      },
+      "edge_multimodal_pipeline": {
+        "description": "we process images, audio, and text together in a single AI pipeline. document understanding + voice. what stack handles this?",
+        "jtbd": "J1",
+        "category": "Edge Case",
+        "expected_truearch_value": "Multimodal-capable orchestration and storage recommendations",
+        "baseline": {
+          "success": false,
+          "latency_ms": 3.6647910019382834,
+          "error": "[Errno 8] nodename nor servname provided, or not known"
+        },
+        "truearch": {
+          "context_latency_ms": 0.2049999893642962,
+          "result": {
+            "success": false,
+            "latency_ms": 4.7557910438627005,
+            "error": "[Errno 8] nodename nor servname provided, or not known"
+          }
+        }
+      }
+    }
+  }
+}
