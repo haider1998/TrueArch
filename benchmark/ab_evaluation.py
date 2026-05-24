@@ -7,14 +7,21 @@ Measures: correctness, specificity, recency, known-issues awareness,
 actionability, hallucination rate, and token efficiency.
 
 Usage:
-    # With Gemini (default)
+    # With Gemini via Application Default Credentials (ADC) — recommended
+    # First: gcloud auth application-default login
+    python benchmark/ab_evaluation.py
+
+    # With Gemini via API key
     GOOGLE_API_KEY=xxx python benchmark/ab_evaluation.py
 
     # With OpenAI
     OPENAI_API_KEY=xxx python benchmark/ab_evaluation.py --provider openai
 
     # With specific model
-    GOOGLE_API_KEY=xxx python benchmark/ab_evaluation.py --model gemini-2.5-flash
+    python benchmark/ab_evaluation.py --model gemini-2.5-flash
+
+    # Run only specific scenarios
+    python benchmark/ab_evaluation.py --scenarios S01,S08
 """
 from __future__ import annotations
 
@@ -264,27 +271,64 @@ def _call_gemini(
     user_prompt: str,
     model: str = "gemini-2.0-flash",
 ) -> LLMResponse:
-    """Call Google Gemini API."""
-    import google.generativeai as genai
+    """
+    Call Google Gemini API using the google-genai SDK.
+    Supports both Application Default Credentials (ADC) and API key auth.
+    
+    Auth priority:
+      1. GOOGLE_API_KEY env var (direct API key)
+      2. ADC via gcloud auth application-default login
+    """
+    from google import genai
+    from google.genai import types
 
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-
-    gen_model = genai.GenerativeModel(
-        model_name=model,
-        system_instruction=system_prompt,
-        generation_config=genai.GenerationConfig(temperature=0.0, max_output_tokens=2048),
-    )
+    # Initialize client — API key or ADC (Vertex AI)
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        client = genai.Client(api_key=api_key)
+    else:
+        # ADC via Vertex AI — requires gcloud auth application-default login
+        import subprocess
+        project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GCLOUD_PROJECT")
+        if not project:
+            try:
+                r = subprocess.run(
+                    [os.path.expanduser("~/google-cloud-sdk/bin/gcloud"), "config", "get-value", "project"],
+                    capture_output=True, text=True, timeout=5
+                )
+                project = r.stdout.strip() if r.returncode == 0 else None
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                project = None
+        if not project:
+            raise RuntimeError(
+                "No credentials found. Either:\n"
+                "  1. Set GOOGLE_API_KEY env var, or\n"
+                "  2. Run: gcloud auth application-default login && gcloud config set project YOUR_PROJECT"
+            )
+        client = genai.Client(
+            vertexai=True,
+            project=project,
+            location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+        )
 
     start = time.time()
-    response = gen_model.generate_content(user_prompt)
+    response = client.models.generate_content(
+        model=model,
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            temperature=0.0,
+            max_output_tokens=2048,
+        ),
+    )
     latency_ms = int((time.time() - start) * 1000)
 
     usage = response.usage_metadata
     return LLMResponse(
         text=response.text or "",
-        input_tokens=usage.prompt_token_count,
-        output_tokens=usage.candidates_token_count,
-        total_tokens=usage.total_token_count,
+        input_tokens=usage.prompt_token_count or 0,
+        output_tokens=usage.candidates_token_count or 0,
+        total_tokens=usage.total_token_count or 0,
         latency_ms=latency_ms,
         model=model,
     )
@@ -885,18 +929,26 @@ def main():
     )
     args = parser.parse_args()
 
-    # Auto-detect provider from env vars
+    # Auto-detect provider from env vars / ADC
     provider = args.provider
     if not provider:
         if os.environ.get("GOOGLE_API_KEY"):
             provider = "gemini"
+            print("🔑 Using GOOGLE_API_KEY for authentication")
         elif os.environ.get("OPENAI_API_KEY"):
             provider = "openai"
         else:
-            print("❌ Error: No API key found.")
-            print("   Set GOOGLE_API_KEY or OPENAI_API_KEY environment variable.")
-            print("   Or use --provider with the appropriate key set.")
-            sys.exit(1)
+            # Check for ADC credentials (gcloud auth application-default login)
+            adc_path = Path.home() / ".config" / "gcloud" / "application_default_credentials.json"
+            if adc_path.exists():
+                provider = "gemini"
+                print("🔐 Using Application Default Credentials (ADC) for Gemini")
+            else:
+                print("❌ Error: No credentials found.")
+                print("   Option 1: gcloud auth application-default login")
+                print("   Option 2: Set GOOGLE_API_KEY env var")
+                print("   Option 3: Set OPENAI_API_KEY env var")
+                sys.exit(1)
 
     model = args.model or ("gemini-2.0-flash" if provider == "gemini" else "gpt-4o-mini")
 
