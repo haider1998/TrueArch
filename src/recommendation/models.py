@@ -106,6 +106,10 @@ class StackRecommendation(BaseModel):
     tradeoff_notes: List[str] = Field(default_factory=list)
     confidence: float = Field(description="Overall recommendation confidence 0–100")
     score_band: str
+    context_brief: Optional[str] = Field(
+        default=None,
+        description="A compressed 150-200 token brief intended for agent system prompts.",
+    )
     # Architecture Genome™ — the fingerprint of this architectural decision
     genome_short: Optional[str] = Field(
         default=None,
@@ -151,6 +155,10 @@ class FrameworkComparison(BaseModel):
     confidence_a: float
     confidence_b: float
 
+    context_brief: Optional[str] = Field(
+        default=None,
+        description="A compressed 150-200 token brief intended for agent system prompts.",
+    )
     recommendation: str        # 1–2 sentence narrative
     when_to_pick_a: List[str]  # concrete scenarios favouring A
     when_to_pick_b: List[str]  # concrete scenarios favouring B

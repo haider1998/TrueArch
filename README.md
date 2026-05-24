@@ -97,11 +97,13 @@ warnings:
 | Tool | Purpose |
 |---|---|
 | `recommend_ai_stack` | Full multi-layer recommendation + Genome + ADR |
+| `quick_context` | 150-200 token context compression for system prompts |
 | `compare_frameworks` | Head-to-head across 5 scoring dimensions |
 | `get_framework_score` | Single framework TrueArch score + staleness |
 | `get_recommendation` | Top-N frameworks in a category |
-| `latest_stable_versions` | Pinned, verified versions for lockfiles |
+| `latest_stable_versions` | Pinned, verified versions for lockfiles + staleness warnings |
 | `architecture_tradeoffs` | Known issues, compatibility, migration paths |
+| `get_code_patterns` | Version-pinned, validated architecture code snippets |
 
 ---
 

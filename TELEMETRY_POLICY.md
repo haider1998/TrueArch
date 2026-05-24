@@ -185,7 +185,7 @@ The following anonymized data will be shared:
 ## Data Architecture
 
 ```
-User Device
+User Device (Phase 1: Local SQLite `telemetry.db`)
     │
     ├── Tier 1 events  →  anonymize()  →  queue  →  HTTPS  →  TrueArch ingest API
     │                                                              │

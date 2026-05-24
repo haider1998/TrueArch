@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone, timedelta, date
 from typing import Dict, List, Optional
+from functools import lru_cache
 
 from src.data.models import FrameworkSchema, ComputedScores
 from src.scoring.engine import ScoringEngine
@@ -314,6 +315,12 @@ class StackRecommendationEngine:
 
     def recommend(self, query: StackQuery) -> StackRecommendation:
         """Produce a full stack recommendation for the given query."""
+        # Check cache first
+        return self._recommend_cached(query.model_dump_json())
+
+    @lru_cache(maxsize=128)
+    def _recommend_cached(self, query_json: str) -> StackRecommendation:
+        query = StackQuery.model_validate_json(query_json)
         target_layers = query.layers or _DEFAULT_LAYERS
         layer_results: Dict[str, FrameworkChoice] = {}
         global_warnings: List[str] = []
@@ -346,6 +353,10 @@ class StackRecommendationEngine:
         # ADR review date: 12 months from today
         review_by = (date.today() + timedelta(days=365)).isoformat()
 
+        context_brief = self._generate_context_brief(
+            layer_results, genome_short, avg_conf, list(dict.fromkeys(global_warnings)), tradeoff_notes, review_by
+        )
+
         return StackRecommendation(
             query_summary=self._summarise_query(query),
             layers=layer_results,
@@ -357,7 +368,45 @@ class StackRecommendationEngine:
             genome_full=genome_full,
             review_by=review_by,
             generated_at=datetime.now(timezone.utc).isoformat(),
+            context_brief=context_brief,
         )
+
+    def _generate_context_brief(
+        self,
+        layers: Dict[str, FrameworkChoice],
+        genome_short: Optional[str],
+        avg_conf: float,
+        warnings: List[str],
+        tradeoff_notes: List[str],
+        review_by: str,
+    ) -> str:
+        """Generates a <200 token architecture brief for system prompt injection."""
+        stack_parts = []
+        avoid_parts = []
+        for choice in layers.values():
+            stack_parts.append(f"{choice.framework_name} {choice.version}")
+            if choice.alternatives:
+                avoid_parts.extend(choice.alternatives)
+
+        stack_str = " + ".join(stack_parts)
+        avoid_str = ", ".join(avoid_parts[:3]) # Top 3 alternatives to avoid or be aware of
+
+        lines = [f"Stack: {stack_str}"]
+        if genome_short:
+            lines.append(f"Genome: {genome_short} | Proxy Confidence: {avg_conf:.0f}%")
+        
+        if avoid_str:
+            lines.append(f"Alternatives considered: {avoid_str}")
+            
+        key_risks = warnings + tradeoff_notes
+        if key_risks:
+            # Take the top 2 risks to keep it brief
+            lines.append(f"Key risk: {key_risks[0]}")
+            if len(key_risks) > 1:
+                lines.append(f"          {key_risks[1]}")
+                
+        lines.append(f"Review: {review_by}")
+        return "\n".join(lines)
 
     def _recommend_layer(
         self, layer: ArchLayer, query: StackQuery
@@ -456,9 +505,10 @@ class StackRecommendationEngine:
 
     @staticmethod
     def _band(score: float) -> str:
-        if score >= 85: return "Excellent"
-        if score >= 70: return "Strong"
-        if score >= 55: return "Good"
-        if score >= 40: return "Fair"
-        if score >= 25: return "Weak"
+        """Score band per SCORING_FORMULA.md — must match ScoringEngine._determine_score_band()."""
+        if score >= 90: return "Excellent"
+        if score >= 75: return "Strong"
+        if score >= 60: return "Good"
+        if score >= 45: return "Fair"
+        if score >= 30: return "Weak"
         return "Poor"

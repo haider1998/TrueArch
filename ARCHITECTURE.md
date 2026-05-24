@@ -134,6 +134,16 @@ tools: [
     inputSchema: { options: string[], constraints: object }
   },
   {
+    name: "quick_context",
+    description: "Token-efficient context compression brief for AI agents",
+    inputSchema: { problem: string, compliance: string[] }
+  },
+  {
+    name: "get_code_patterns",
+    description: "Version-pinned, validated code snippets for specific frameworks",
+    inputSchema: { framework: string }
+  },
+  {
     name: "validate_agent_architecture",
     description: "Check if a proposed architecture is production-ready",
     inputSchema: { architecture: object }
@@ -179,11 +189,11 @@ GET  /benchmarks               → Public benchmark data
 
 **Purpose:** Do NOT inject 50,000 tokens of framework documentation into an agent's context. Inject only what's architecturally critical for the current decision.
 
-**How it works:**
+**How it works (Implemented via `quick_context` MCP Tool):**
 1. Analyzes the agent's current task context
 2. Identifies the architecture decision points
-3. Extracts *only* the relevant intelligence
-4. Compresses into minimal, structured context
+3. Extracts *only* the relevant intelligence (Top options, tradeoffs, risks)
+4. Compresses into minimal, structured `< 200 token` context brief
 
 **Why this matters:**
 - Reduces token cost dramatically
@@ -270,7 +280,9 @@ Structured response injected back into Cursor
 ### Storage Stack (Phase 1)
 
 ```
-PostgreSQL          → Structured framework data, recommendations
+SQLite              → Local telemetry logger (`telemetry.db`) for outcome storage
+PostgreSQL          → Structured framework data, recommendations (future)
+YAML                → Curation database (`data/frameworks/*.yaml`)
 Redis               → Caching layer (24-48h TTL)
 Vector DB           → Semantic search over architecture patterns (Pgvector or Qdrant)
 Object Storage      → Benchmark reports, research artifacts

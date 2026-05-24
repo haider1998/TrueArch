@@ -43,6 +43,10 @@ class ScoringEngine:
         # Calculate Confidence Score
         scores.confidence = self._compute_confidence(framework)
         
+        # Determine if it's a proxy confidence (based on community migrations rather than true lineage)
+        outcomes = framework.signals.migration_risk.community_migrations
+        scores.is_proxy_confidence = bool(outcomes > 0)
+        
         # Determine Score Band
         scores.score_band = self._determine_score_band(scores.overall)
         
@@ -293,7 +297,9 @@ class ScoringEngine:
 
         days_old = (self.today - scores.last_computed).days
 
-        if days_old <= 7:
+        if days_old < 0:
+            return ("expired", "Computation date is in the future. Check system clock.")
+        elif days_old <= 7:
             return ("fresh", None)
         elif days_old <= 30:
             return ("acceptable", None)

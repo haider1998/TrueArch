@@ -208,6 +208,42 @@ def _top_dimension(
     return best_dim
 
 
+# ── Comparison context brief ──────────────────────────────────────────────────
+
+def _build_comparison_brief(
+    fw_a: FrameworkSchema,
+    fw_b: FrameworkSchema,
+    winner_id: str,
+    winner_name: str,
+    score_a: float,
+    score_b: float,
+    conf_a: float,
+    conf_b: float,
+    dimensions: List[DimensionComparison],
+    use_case: Optional[str],
+) -> str:
+    """
+    Build a compressed comparison brief (≤150 tokens) for agent system prompt injection.
+    Format mirrors StackRecommendation.context_brief for consistency across all TrueArch tools.
+    """
+    ctx = f" for {use_case}" if use_case else ""
+    winner_str = winner_name if winner_id != "tie" else "tie"
+
+    # Top winning dimensions for the winner
+    winner_dims = [
+        d.dimension for d in dimensions
+        if d.winner == winner_id and d.delta >= _TIE_THRESHOLD
+    ][:2]
+    dims_str = (", ".join(winner_dims)) if winner_dims else "overall"
+
+    lines = [
+        f"Comparison{ctx}: {fw_a.name} ({score_a:.0f}) vs {fw_b.name} ({score_b:.0f})",
+        f"Winner: {winner_str} | Confidence: {conf_a:.0f}% vs {conf_b:.0f}%",
+        f"Key advantage: {winner_str} leads on {dims_str}",
+    ]
+    return "\n".join(lines)
+
+
 # ── Main Comparator ───────────────────────────────────────────────────────────
 
 class TradeoffComparator:
@@ -283,6 +319,17 @@ class TradeoffComparator:
                 f"{fw_b.name}→elsewhere: {guides_b}."
             )
 
+        recommendation_str = _narrative_recommendation(
+            fw_a, fw_b, overall_winner_id, oa, ob, use_case
+        )
+
+        # Compressed context brief for agent system prompt injection (≤150 tokens)
+        context_brief = _build_comparison_brief(
+            fw_a, fw_b, overall_winner_id, overall_winner_name, oa, ob,
+            scores_a.confidence or 0.0, scores_b.confidence or 0.0,
+            dimensions, use_case,
+        )
+
         return FrameworkComparison(
             framework_a_id=fw_a.id,
             framework_a_name=fw_a.name,
@@ -296,9 +343,8 @@ class TradeoffComparator:
             overall_score_b=round(ob, 1),
             confidence_a=scores_a.confidence or 0.0,
             confidence_b=scores_b.confidence or 0.0,
-            recommendation=_narrative_recommendation(
-                fw_a, fw_b, overall_winner_id, oa, ob, use_case
-            ),
+            context_brief=context_brief,
+            recommendation=recommendation_str,
             when_to_pick_a=_when_to_pick(fw_a, [], overall_winner_id == fw_a.id),
             when_to_pick_b=_when_to_pick(fw_b, [], overall_winner_id == fw_b.id),
             migration_note=migration_note,

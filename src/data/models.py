@@ -68,6 +68,7 @@ class ComputedScores(BaseModel):
     agent_compatibility: Optional[float] = None
     overall: Optional[float] = None
     confidence: Optional[float] = None
+    is_proxy_confidence: Optional[bool] = None
     score_band: Optional[Literal["Excellent", "Strong", "Good", "Fair", "Weak", "Poor"]] = None
     last_computed: Optional[date] = None
     valid_until: Optional[date] = None

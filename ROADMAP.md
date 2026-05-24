@@ -25,6 +25,10 @@
 | **Architecture Tradeoff Reasoner** | Why X over Y for this specific problem | P0 |
 | **REST API** | Core intelligence accessible to anything | P0 |
 | **MCP Server** | TrueArch MCP — minimal, clean, well-structured | P0 |
+| **Context Compression (`quick_context`)** | Token-efficient brief context for agents | P0 |
+| **Version Sync Action** | Nightly updates to maintain stable versions | P0 |
+| **Telemetry Logger (SQLite)** | Foundation for outcome data flywheel | P1 |
+| **Code Pattern Library** | Scaffolding for framework code snippets | P1 |
 | **Cursor Integration** | First IDE integration | P1 |
 | **Claude Code Integration** | Second IDE integration | P1 |
 | **Simple Web UI** | Trust-builder and onboarding surface (NOT primary product) | P2 |

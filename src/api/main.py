@@ -118,7 +118,7 @@ async def health_check():
     }
 
 
-@app.get("/api/v1/frameworks", response_model=List[FrameworkResponse], tags=["frameworks"])
+@app.get("/api/v1/frameworks", response_model=List[FrameworkResponse], response_model_exclude_none=True, tags=["frameworks"])
 async def list_frameworks(
     category: Optional[str] = Query(None, description="Filter by category (e.g. 'orchestration', 'vector-db')"),
     genome_dimension: Optional[str] = Query(None, description="Filter by genome dimension key (e.g. 'D8_orchestrator')"),
@@ -136,7 +136,7 @@ async def list_frameworks(
     return results
 
 
-@app.get("/api/v1/frameworks/{framework_id}", response_model=FrameworkDetailResponse, tags=["frameworks"])
+@app.get("/api/v1/frameworks/{framework_id}", response_model=FrameworkDetailResponse, response_model_exclude_none=True, tags=["frameworks"])
 async def get_framework(framework_id: str):
     """Get full details and dimension breakdown for a specific framework."""
     if framework_id not in frameworks_db:
@@ -149,7 +149,7 @@ async def get_framework(framework_id: str):
     return FrameworkDetailResponse(framework=fw, scores=fw.computed_scores)
 
 
-@app.get("/api/v1/recommendations", response_model=List[FrameworkResponse], tags=["recommendations"])
+@app.get("/api/v1/recommendations", response_model=List[FrameworkResponse], response_model_exclude_none=True, tags=["recommendations"])
 async def get_recommendations(
     category: str = Query(..., description="The category to get recommendations for"),
 ):
@@ -180,6 +180,7 @@ async def get_recommendations(
 @app.post(
     "/api/v1/recommend/stack",
     response_model=StackRecommendation,
+    response_model_exclude_none=True,
     tags=["intelligence"],
     summary="Generate a full multi-layer stack recommendation",
     description=(
@@ -200,6 +201,7 @@ async def recommend_stack(query: StackQuery) -> StackRecommendation:
 @app.get(
     "/api/v1/compare/{framework_a_id}/{framework_b_id}",
     response_model=FrameworkComparison,
+    response_model_exclude_none=True,
     tags=["intelligence"],
     summary="Compare two frameworks side-by-side",
     description=(
