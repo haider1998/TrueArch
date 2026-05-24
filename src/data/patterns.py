@@ -468,6 +468,408 @@ class RedisSessionMemory:
             await self._client.aclose()
 ''',
     ),
+
+    # ── CrewAI ────────────────────────────────────────────────────────────────
+
+    CodePattern(
+        framework_id="crewai",
+        use_case="crew_setup",
+        version_range=">=0.80.0",
+        description=(
+            "Define a crew with agents and tasks in CrewAI 0.80+. "
+            "Uses the new @agent, @task, @crew decorator API. "
+            "Do NOT use the legacy Agent(role=..., goal=...) constructor from pre-0.60 tutorials."
+        ),
+        snippet='''\
+# pip install crewai>=0.80.0
+from crewai import Agent, Task, Crew, Process
+
+# CrewAI 0.80+ agent definition — role-based, with explicit backstory
+researcher = Agent(
+    role="Senior Research Analyst",
+    goal="Find and summarize the latest AI framework trends",
+    backstory="You are an expert at analyzing technology trends and market signals.",
+    verbose=True,
+    allow_delegation=False,  # Set True only if this agent should delegate to others
+)
+
+writer = Agent(
+    role="Technical Writer",
+    goal="Write a clear, concise report from research findings",
+    backstory="You excel at making complex technical topics accessible.",
+    verbose=True,
+    allow_delegation=False,
+)
+
+# Task definition — each task is assigned to exactly one agent
+research_task = Task(
+    description="Research the top 5 AI orchestration frameworks in 2026. Compare features, adoption, and risks.",
+    expected_output="A structured comparison table with pros/cons for each framework.",
+    agent=researcher,
+)
+
+write_task = Task(
+    description="Write a 500-word executive summary based on the research findings.",
+    expected_output="A polished executive summary in markdown format.",
+    agent=writer,
+)
+
+# Crew — sequential process is the default and most predictable
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, write_task],
+    process=Process.sequential,  # Tasks run in order; use Process.hierarchical for manager delegation
+    verbose=True,
+)
+
+result = crew.kickoff()
+print(result)
+''',
+    ),
+
+    CodePattern(
+        framework_id="crewai",
+        use_case="tool",
+        version_range=">=0.80.0",
+        description=(
+            "Add a custom tool to a CrewAI agent using the @tool decorator (CrewAI 0.80+). "
+            "Tools must return a string. Use crewai_tools for built-in tools (search, scrape, etc.)."
+        ),
+        snippet='''\
+# pip install crewai>=0.80.0 crewai-tools>=0.12.0
+from crewai import Agent, Task, Crew
+from crewai.tools import tool
+
+@tool("Search Database")
+def search_database(query: str) -> str:
+    """Search the internal database for relevant documents.
+
+    Args:
+        query: The search query string.
+    """
+    # Tool must return a string — CrewAI passes it back to the agent as text
+    # Replace with your actual database search logic
+    return f"Found 3 results for: {query}"
+
+# Attach tools to agent via the tools parameter
+agent = Agent(
+    role="Database Analyst",
+    goal="Answer questions using our internal database",
+    backstory="You are an expert at querying and interpreting database records.",
+    tools=[search_database],  # List of tool functions
+    verbose=True,
+)
+''',
+    ),
+
+    # ── Google ADK ────────────────────────────────────────────────────────────
+
+    CodePattern(
+        framework_id="google_adk",
+        use_case="agent",
+        version_range=">=1.0.0",
+        description=(
+            "Create a basic Google ADK agent with tools (google-adk>=1.0.0). "
+            "ADK agents are async-native and support MCP tool integration. "
+            "Use InMemoryRunner for local testing, deploy via Cloud Run for production."
+        ),
+        snippet='''\
+# pip install google-adk>=1.0.0
+from google.adk.agents import Agent
+from google.adk.runners import InMemoryRunner
+
+# Define tools as regular Python functions — ADK wraps them automatically
+def get_weather(city: str) -> dict:
+    """Get the current weather for a city.
+
+    Args:
+        city: The name of the city.
+
+    Returns:
+        A dictionary with weather information.
+    """
+    return {"city": city, "temp_c": 22, "condition": "Sunny"}
+
+# Create agent with tools
+weather_agent = Agent(
+    name="weather_agent",
+    model="gemini-2.0-flash",
+    instruction="You are a helpful weather assistant. Use your tools to answer weather questions.",
+    tools=[get_weather],
+)
+
+# Local testing with InMemoryRunner
+async def main():
+    runner = InMemoryRunner(agent=weather_agent)
+    async for event in runner.run_async(
+        user_id="test_user",
+        session_id="test_session",
+        new_message="What's the weather in London?",
+    ):
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    print(part.text)
+
+import asyncio
+asyncio.run(main())
+''',
+    ),
+
+    CodePattern(
+        framework_id="google_adk",
+        use_case="multi_agent",
+        version_range=">=1.0.0",
+        description=(
+            "Multi-agent delegation pattern in Google ADK 1.0+. "
+            "Uses sub_agents for hierarchical delegation. The root agent delegates to specialists."
+        ),
+        snippet='''\
+# pip install google-adk>=1.0.0
+from google.adk.agents import Agent
+
+# Specialist agents
+researcher = Agent(
+    name="researcher",
+    model="gemini-2.0-flash",
+    instruction="You are a research specialist. Find factual answers to questions.",
+)
+
+writer = Agent(
+    name="writer",
+    model="gemini-2.0-flash",
+    instruction="You are a writing specialist. Create polished summaries from research notes.",
+)
+
+# Root agent delegates to specialists via sub_agents
+coordinator = Agent(
+    name="coordinator",
+    model="gemini-2.0-flash",
+    instruction=(
+        "You are a project coordinator. "
+        "Delegate research tasks to the researcher agent and writing tasks to the writer agent."
+    ),
+    sub_agents=[researcher, writer],  # ADK handles delegation routing
+)
+''',
+    ),
+
+    # ── LlamaIndex ────────────────────────────────────────────────────────────
+
+    CodePattern(
+        framework_id="llamaindex",
+        use_case="rag",
+        version_range=">=0.11.0",
+        description=(
+            "Basic RAG pipeline in LlamaIndex 0.11+ (llama-index-core). "
+            "Uses the new modular package structure — do NOT use 'from llama_index import ...' (pre-0.10 pattern). "
+            "All imports go through llama_index.core."
+        ),
+        snippet='''\
+# pip install llama-index-core>=0.11.0 llama-index-llms-openai llama-index-embeddings-openai
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.llms.openai import OpenAI
+from llama_index.embeddings.openai import OpenAIEmbedding
+
+# Configure global settings (replaces deprecated ServiceContext)
+Settings.llm = OpenAI(model="gpt-4o", temperature=0)
+Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
+
+# Load documents from a directory
+documents = SimpleDirectoryReader("./data").load_data()
+
+# Build vector index — embeddings are computed automatically
+index = VectorStoreIndex.from_documents(documents)
+
+# Query the index
+query_engine = index.as_query_engine(
+    similarity_top_k=5,  # Number of chunks to retrieve
+)
+response = query_engine.query("What are the key findings?")
+print(response)
+''',
+    ),
+
+    CodePattern(
+        framework_id="llamaindex",
+        use_case="agent",
+        version_range=">=0.11.0",
+        description=(
+            "LlamaIndex ReAct agent pattern (0.11+). "
+            "Uses FunctionTool for tool wrapping. Do NOT use the deprecated LangchainToolSpec."
+        ),
+        snippet='''\
+# pip install llama-index-core>=0.11.0 llama-index-llms-openai
+from llama_index.core.agent import ReActAgent
+from llama_index.core.tools import FunctionTool
+from llama_index.llms.openai import OpenAI
+
+# Define tools as plain Python functions
+def search_docs(query: str) -> str:
+    """Search internal documentation for relevant information."""
+    return f"Found results for: {query}"
+
+def calculate(expression: str) -> str:
+    """Evaluate a mathematical expression."""
+    try:
+        return str(eval(expression))  # noqa: S307 — demo only
+    except Exception as e:
+        return f"Error: {e}"
+
+# Wrap as FunctionTool — LlamaIndex infers schema from type hints + docstring
+search_tool = FunctionTool.from_defaults(fn=search_docs)
+calc_tool = FunctionTool.from_defaults(fn=calculate)
+
+# Create ReAct agent
+llm = OpenAI(model="gpt-4o", temperature=0)
+agent = ReActAgent.from_tools(
+    tools=[search_tool, calc_tool],
+    llm=llm,
+    verbose=True,
+    max_iterations=10,  # Prevent infinite loops — always set this in production
+)
+
+response = agent.chat("How many documents mention 'LangGraph'?")
+print(response)
+''',
+    ),
+
+    # ── Chroma ────────────────────────────────────────────────────────────────
+
+    CodePattern(
+        framework_id="chroma",
+        use_case="init",
+        version_range=">=0.5.0",
+        description=(
+            "Initialize Chroma for local development and prototyping (chromadb>=0.5.0). "
+            "Chroma is best for prototype/growth scale. For production (>100K users), prefer Qdrant or pgvector."
+        ),
+        snippet='''\
+# pip install chromadb>=0.5.0
+import chromadb
+
+# Ephemeral client — data lives in memory only (for testing)
+client = chromadb.Client()
+
+# Persistent client — data saved to disk (for local development)
+# client = chromadb.PersistentClient(path="./chroma_data")
+
+# Create or get a collection
+collection = client.get_or_create_collection(
+    name="my_documents",
+    metadata={"hnsw:space": "cosine"},  # Distance metric: cosine, l2, or ip
+)
+
+# Add documents — Chroma auto-embeds using its default model
+collection.add(
+    documents=["LangGraph is a graph-based orchestrator", "CrewAI uses role-based agents"],
+    ids=["doc1", "doc2"],
+    metadatas=[{"source": "blog"}, {"source": "docs"}],
+)
+
+# Query — returns nearest neighbors
+results = collection.query(
+    query_texts=["What is the best agent framework?"],
+    n_results=2,
+    include=["documents", "distances", "metadatas"],
+)
+print(results["documents"])
+''',
+    ),
+
+    # ── Pinecone ──────────────────────────────────────────────────────────────
+
+    CodePattern(
+        framework_id="pinecone",
+        use_case="init",
+        version_range=">=5.0.0",
+        description=(
+            "Initialize Pinecone serverless index (pinecone>=5.0.0). "
+            "The v5 SDK replaced pinecone-client. Do NOT use pinecone.init() or pinecone.Index() (deprecated v2 API)."
+        ),
+        snippet='''\
+# pip install pinecone>=5.0.0
+from pinecone import Pinecone, ServerlessSpec
+
+# Initialize — v5 uses Pinecone() class, NOT pinecone.init() (deprecated)
+pc = Pinecone(api_key="your-api-key")
+
+INDEX_NAME = "my-vectors"
+DIMENSION = 1536  # Match your embedding model dimension
+
+# Create serverless index if it doesn't exist
+existing = [idx.name for idx in pc.list_indexes()]
+if INDEX_NAME not in existing:
+    pc.create_index(
+        name=INDEX_NAME,
+        dimension=DIMENSION,
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+
+# Connect to index
+index = pc.Index(INDEX_NAME)
+
+# Upsert vectors
+index.upsert(
+    vectors=[
+        {"id": "vec1", "values": [0.1] * DIMENSION, "metadata": {"source": "doc1"}},
+        {"id": "vec2", "values": [0.2] * DIMENSION, "metadata": {"source": "doc2"}},
+    ],
+    namespace="default",
+)
+
+# Query
+results = index.query(
+    vector=[0.15] * DIMENSION,
+    top_k=5,
+    include_metadata=True,
+    namespace="default",
+)
+for match in results["matches"]:
+    print(f"ID: {match['id']}, Score: {match['score']:.4f}")
+''',
+    ),
+
+    # ── OpenTelemetry ─────────────────────────────────────────────────────────
+
+    CodePattern(
+        framework_id="opentelemetry",
+        use_case="basic_tracing",
+        version_range=">=1.24.0",
+        description=(
+            "Basic OpenTelemetry tracing setup (opentelemetry-sdk>=1.24.0). "
+            "Sets up a TracerProvider with OTLP export. Use this as the foundation "
+            "for instrumenting any Python service."
+        ),
+        snippet='''\
+# pip install opentelemetry-sdk>=1.24.0 opentelemetry-exporter-otlp-proto-grpc
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+
+# 1. Define service identity
+resource = Resource.create({"service.name": "my-ai-service", "service.version": "1.0.0"})
+
+# 2. Set up tracer provider with OTLP exporter
+provider = TracerProvider(resource=resource)
+otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+trace.set_tracer_provider(provider)
+
+# 3. Get a tracer for your module
+tracer = trace.get_tracer(__name__)
+
+# 4. Use spans to trace operations
+with tracer.start_as_current_span("process_query") as span:
+    span.set_attribute("query.type", "rag")
+    span.set_attribute("query.tokens", 150)
+    # ... your logic here ...
+    span.set_status(trace.StatusCode.OK)
+''',
+    ),
 ]
 
 

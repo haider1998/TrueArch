@@ -3,11 +3,16 @@ Shared pytest fixtures for the TrueArch test suite.
 Loaded automatically by pytest from any test file.
 """
 import os
+import tempfile
 import pytest
 from fastapi.testclient import TestClient
 
 from src.data.loader import FrameworkLoader
 from src.scoring.engine import ScoringEngine
+
+# ── Test isolation ───────────────────────────────────────────────────────────
+# C9 fix: redirect telemetry writes to a temp file so tests never touch the real DB
+os.environ.setdefault("TRUEARCH_DB_PATH", os.path.join(tempfile.gettempdir(), "truearch_test_telemetry.db"))
 
 # ── Path resolution ──────────────────────────────────────────────────────────
 

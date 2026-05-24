@@ -150,7 +150,8 @@ class TestStackRecommendationEngine:
         import re
         query = StackQuery(problem="Test system")
         result = stack_engine.recommend(query)
-        assert re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", result.generated_at)
+        # C7: generated_at is now a deterministic date (YYYY-MM-DD), not a wall-clock datetime
+        assert re.match(r"\d{4}-\d{2}-\d{2}", result.generated_at)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

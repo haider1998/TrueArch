@@ -4,9 +4,27 @@ from typing import Optional
 from src.data.models import FrameworkSchema, ComputedScores
 
 class ScoringEngine:
-    def __init__(self, today: Optional[date] = None):
+    def __init__(self, today: Optional[date] = None, max_jobs: int = 6000):
         # Allow injecting a specific date for testing, default to today
         self.today = today or date.today()
+        # Dynamic ceiling for job-posting normalization (C6 fix)
+        # Default 6000 maintains backward compat; use from_frameworks() for live data
+        self._max_jobs = max(1, max_jobs)
+
+    @classmethod
+    def from_frameworks(
+        cls,
+        frameworks: dict,
+        today: Optional[date] = None,
+    ) -> "ScoringEngine":
+        """Create a ScoringEngine with max_jobs derived from actual framework data."""
+        max_jobs = max(
+            (fw.signals.ecosystem_momentum.job_postings_30d for fw in frameworks.values()),
+            default=6000,
+        )
+        # Add 20% headroom so the top framework doesn't auto-cap at 100
+        max_jobs = int(max_jobs * 1.2) or 6000
+        return cls(today=today, max_jobs=max_jobs)
 
     def compute_scores(self, framework: FrameworkSchema) -> ComputedScores:
         """
@@ -125,9 +143,8 @@ class ScoringEngine:
         pr_speed_score = max(0.0, 100.0 - (sig.avg_days_to_merge * 10.0))
         pr_score = (pr_volume_score + pr_speed_score) / 2.0
         
-        # Job demand (Normalize against ecosystem_max_jobs, say 6000 for MongoDB)
-        ecosystem_max_jobs = 6000
-        job_score = min(100.0, (sig.job_postings_30d / ecosystem_max_jobs) * 100.0)
+        # Job demand — normalized against dynamic ceiling (C6: was hardcoded 6000)
+        job_score = min(100.0, (sig.job_postings_30d / self._max_jobs) * 100.0)
         if sig.job_postings_30d == 0:
             job_score = 50.0 # Edge case handling
             

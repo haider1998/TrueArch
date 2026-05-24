@@ -13,7 +13,7 @@ Design principles:
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone, timedelta, date
+from datetime import date, timedelta
 from typing import Dict, List, Optional
 from functools import lru_cache
 
@@ -367,7 +367,7 @@ class StackRecommendationEngine:
             genome_short=genome_short,
             genome_full=genome_full,
             review_by=review_by,
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=date.today().isoformat(),
             context_brief=context_brief,
         )
 

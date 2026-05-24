@@ -50,7 +50,7 @@ _loader = FrameworkLoader(data_dir=_DATA_DIR)
 _frameworks = _loader.load_all()
 
 # Score all frameworks at startup (deterministic, cached in memory)
-_scoring_engine = ScoringEngine()
+_scoring_engine = ScoringEngine.from_frameworks(_frameworks)
 for _fw in _frameworks.values():
     _fw.computed_scores = _scoring_engine.compute_scores(_fw)
 
@@ -199,7 +199,7 @@ def recommend_ai_stack(
         return {"error": f"Invalid query parameters: {str(e)}"}
 
     rec = _stack_engine.recommend(query)
-    result = rec.model_dump(exclude_none=True)
+    result = rec.model_dump(exclude_none=True, exclude={"query_summary"})
 
 
     # Log recommendation to telemetry
@@ -657,6 +657,145 @@ def generate_adr(
     })
 
 
+# ── Tool 9: explain_score ────────────────────────────────────────────────────
+
+@mcp.tool(
+    description=(
+        "Explain WHY a framework received its TrueArch score. Returns a per-dimension "
+        "breakdown with the raw signal values that drove each sub-score, plus the "
+        "confidence calculation rationale. Use when an agent or developer asks "
+        "'Why did X score Y?' or wants to challenge/validate a recommendation."
+    )
+)
+def explain_score(framework_id: str) -> dict:
+    """
+    Args:
+        framework_id: The framework ID to explain (e.g. 'langgraph', 'crewai').
+    """
+    if framework_id not in _frameworks:
+        return {
+            "error": f"Unknown framework: '{framework_id}'.",
+            "available_frameworks": _FRAMEWORK_IDS,
+        }
+
+    fw = _frameworks[framework_id]
+    scores = fw.computed_scores
+    sigs = fw.signals
+
+    def _band_label(score: float) -> str:
+        if score >= 90: return "Excellent"
+        if score >= 75: return "Strong"
+        if score >= 60: return "Good"
+        if score >= 45: return "Fair"
+        if score >= 30: return "Weak"
+        return "Poor"
+
+    return _clean_dict({
+        "framework_id": fw.id,
+        "framework_name": fw.name,
+        "overall_score": scores.overall,
+        "score_band": scores.score_band,
+        "confidence": scores.confidence,
+        "dimensions": {
+            "production_stability": {
+                "score": scores.production_stability,
+                "weight": "30%",
+                "band": _band_label(scores.production_stability or 0),
+                "key_signals": {
+                    "breaking_changes_per_90d": sigs.production_stability.breaking_changes_per_90d,
+                    "issue_resolution_ratio": sigs.production_stability.issue_resolution_ratio,
+                    "open_security_advisories": sigs.production_stability.open_security_advisories,
+                    "incident_rate": sigs.production_stability.incident_rate,
+                    "incident_rate_source": sigs.production_stability.incident_rate_source,
+                },
+            },
+            "ecosystem_momentum": {
+                "score": scores.ecosystem_momentum,
+                "weight": "25%",
+                "band": _band_label(scores.ecosystem_momentum or 0),
+                "key_signals": {
+                    "github_stars": sigs.ecosystem_momentum.github_stars,
+                    "star_growth_30d_pct": sigs.ecosystem_momentum.star_growth_30d_pct,
+                    "commits_last_90d": sigs.ecosystem_momentum.commits_last_90d,
+                    "merged_prs_per_30d": sigs.ecosystem_momentum.merged_prs_per_30d,
+                    "job_postings_30d": sigs.ecosystem_momentum.job_postings_30d,
+                },
+            },
+            "migration_risk": {
+                "score": scores.migration_risk,
+                "weight": "15%",
+                "band": _band_label(scores.migration_risk or 0),
+                "note": "Higher = easier to migrate away (lower lock-in)",
+                "key_signals": {
+                    "viable_alternatives": sigs.migration_risk.viable_alternatives,
+                    "public_api_methods": sigs.migration_risk.public_api_methods,
+                    "migration_guide_count": sigs.migration_risk.migration_guide_count,
+                    "community_migrations": sigs.migration_risk.community_migrations,
+                },
+            },
+            "governance_readiness": {
+                "score": scores.governance_readiness,
+                "weight": "15%",
+                "band": _band_label(scores.governance_readiness or 0),
+                "key_signals": {
+                    "unpatched_cves": sigs.governance_readiness.unpatched_cves,
+                    "avg_days_to_patch": sigs.governance_readiness.avg_days_to_patch,
+                    "hipaa_deployments": sigs.governance_readiness.hipaa_deployments,
+                    "soc2_deployments": sigs.governance_readiness.soc2_deployments,
+                    "audit_support": sigs.governance_readiness.audit_support,
+                },
+            },
+            "agent_compatibility": {
+                "score": scores.agent_compatibility,
+                "weight": "15%",
+                "band": _band_label(scores.agent_compatibility or 0),
+                "key_signals": {
+                    "mcp_support": sigs.agent_compatibility.mcp_support,
+                    "is_async_native": sigs.agent_compatibility.is_async_native,
+                    "multiagent_support": sigs.agent_compatibility.multiagent_support,
+                    "state_management_rating": sigs.agent_compatibility.state_management_rating,
+                },
+            },
+        },
+        "confidence_rationale": {
+            "base": 70.0,
+            "is_proxy_confidence": scores.is_proxy_confidence,
+            "incident_rate_source": sigs.production_stability.incident_rate_source,
+            "signals_age_days": (date.today() - sigs.production_stability.signals_date).days,
+        },
+        "curation": {
+            "status": fw.curation.status,
+            "last_validated": fw.curation.last_validated.isoformat(),
+            "curator_notes": fw.curation.notes[:200] if fw.curation.notes else None,
+        },
+    })
+
+
+# ── Tool 10: genome_compare ──────────────────────────────────────────────────
+
+@mcp.tool(
+    description=(
+        "Compare two Architecture Genome fingerprints for similarity. "
+        "Returns a weighted similarity score (0-1), matching/mismatching dimensions, "
+        "and a hard-filter flag if compliance profiles (D4) are incompatible. "
+        "Use when comparing two architectural decisions or checking if a new system "
+        "is compatible with an existing one."
+    )
+)
+def genome_compare(genome_a: str, genome_b: str) -> dict:
+    """
+    Args:
+        genome_a: First Architecture Genome string (e.g. 'MA-STAT-HOR-HIPAA-PY-MCP-REDIS').
+        genome_b: Second Architecture Genome string to compare against.
+    """
+    from src.recommendation.genome import genome_similarity
+
+    if not genome_a or not genome_b:
+        return {"error": "Both genome_a and genome_b must be non-empty strings."}
+
+    return genome_similarity(genome_a, genome_b)
+
+
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 _START_TIME = date.today().isoformat()
@@ -711,6 +850,8 @@ def _build_http_app() -> FastAPI:
                 "architecture_tradeoffs",
                 "get_code_patterns",
                 "generate_adr",
+                "explain_score",
+                "genome_compare",
             ],
         })
 

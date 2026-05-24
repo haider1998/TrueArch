@@ -40,6 +40,7 @@ async def lifespan(app: FastAPI):
 
     try:
         frameworks_db = _loader.load_all()
+        _engine = ScoringEngine.from_frameworks(frameworks_db)
         for fw in frameworks_db.values():
             fw.computed_scores = _engine.compute_scores(fw)
         _stack_engine = StackRecommendationEngine(frameworks_db)
