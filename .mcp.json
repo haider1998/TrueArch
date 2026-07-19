@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "truearch": {
-      "command": "/Users/smhrizvi/AntiGravityProjects/TrueArch/venv/bin/truearch-mcp",
-      "description": "TrueArch — the hallucination killer for AI coding agents (local stdio via editable install)."
-    }
-  }
-}
