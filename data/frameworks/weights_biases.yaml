@@ -1,0 +1,142 @@
+schema_version: "1.0"
+
+id: "weights_biases"
+name: "Weights & Biases (wandb)"
+category: "observability"
+subcategory: "ml-experiment-tracking"
+url: "https://github.com/wandb/wandb"
+docs_url: "https://docs.wandb.ai"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.17.3"
+latest_stable_released: "2026-05-06"
+
+genome_dimension:
+  key: "D3_observability"
+  value: "WNB"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.75
+    open_security_advisories: 0
+    incident_rate: 0.05
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 9500
+    star_growth_30d_pct: 1.8
+    commits_last_90d: 110
+    commits_prev_90d: 92
+    merged_prs_per_30d: 20
+    avg_days_to_merge: 4.5
+    job_postings_30d: 420                # "wandb" or "weights and biases" in many ML job listings
+    so_questions_30d: 185
+    so_questions_prev_30d: 168
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3               # MLflow, Comet ML, Neptune
+    public_api_methods: 55
+    migration_guide_count: 3
+    community_migrations: 8
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 10
+    doc_completeness_rating: 90
+    hipaa_deployments: 5                 # via on-prem/dedicated cloud deployment
+    soc2_deployments: 18
+    gdpr_deployments: 7
+    other_compliance_deployments: 3
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: false               # W&B SDK is synchronous; logs are async under the hood
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 4           # Artifacts and runs track state across experiments
+    multiagent_support: "possible"       # Weave (W&B's LLM observability layer) supports multi-agent traces
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "WNB-001"
+    severity: "high"
+    category: "latency"
+    frequency: "common"
+    production_impact: "medium"
+    description: "W&B logging is synchronous by default and can add 50-200ms latency per log call in tight inference loops. High-frequency logging can bottleneck throughput."
+    affected_versions: ">=0.12.0"
+    resolved: false
+    workaround: "Use wandb.init(settings=wandb.Settings(disable_git=True)) and log in batches. For LLM tracing, use Weave which is designed for async tracing."
+    source: "curated"
+    first_reported: "2023-05-01"
+
+  - id: "WNB-002"
+    severity: "medium"
+    category: "llm_support"
+    frequency: "common"
+    production_impact: "medium"
+    description: "wandb core SDK was not designed for LLM tracing. Use W&B Weave (separate product) for LLM/agent observability. Mixing wandb.log() with LLM calls requires careful design."
+    affected_versions: ">=0.15.0"
+    resolved: false
+    workaround: "Use wandb.weave for LLM/agent tracing. Use wandb.log() only for experiment metrics (loss, accuracy). Keep the two separate."
+    source: "https://weave-docs.wandb.ai"
+    first_reported: "2024-01-01"
+
+  - id: "WNB-003"
+    severity: "low"
+    category: "cost"
+    frequency: "common"
+    production_impact: "low"
+    description: "W&B SaaS free tier limits storage and retention. Enterprise workloads with high artifact volume incur significant cost."
+    affected_versions: ">=0.1.0"
+    resolved: false
+    workaround: "Use wandb.log(step=N) sparingly in production. Store large artifacts in S3 and log references. Consider W&B on-prem for cost control."
+    source: "curated"
+    first_reported: "2023-01-01"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.78
+    notes: "W&B Weave has a LangGraph integration for agent trace logging."
+  - framework: "fastapi"
+    strength: 0.70
+    notes: "W&B can log FastAPI server metrics; requires manual instrumentation."
+  - framework: "pydantic_ai"
+    strength: 0.72
+    notes: "W&B Weave supports Pydantic AI agent tracing."
+
+conflicts_with: []
+supersedes: []
+migrates_to:
+  - framework: "logfire"
+    effort: 0.4
+    notes: "Logfire has better native Python AI framework integration; W&B is stronger for ML training workflows."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://docs.wandb.ai"
+    - "https://weave-docs.wandb.ai"
+    - "https://github.com/wandb/wandb/releases"
+  notes: "W&B is the industry standard for ML experiment tracking in model training workflows. For LLM/agent observability specifically, use W&B Weave (their dedicated LLM product) rather than the core wandb SDK. W&B is strongest in research and ML training contexts; Logfire or LangSmith are better for pure inference/agent observability."

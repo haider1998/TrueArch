@@ -1,0 +1,142 @@
+schema_version: "1.0"
+
+id: "vercel_ai_sdk"
+name: "Vercel AI SDK"
+category: "deployment"
+subcategory: "typescript-ai-ui-framework"
+url: "https://github.com/vercel/ai"
+docs_url: "https://sdk.vercel.ai/docs"
+license: "Apache-2.0"
+primary_language: "TypeScript"
+latest_stable_version: "4.3.8"
+latest_stable_released: "2026-05-09"
+
+genome_dimension:
+  key: "D7_deployment"
+  value: "VAI"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 2
+    issue_resolution_ratio: 0.72
+    open_security_advisories: 0
+    incident_rate: 0.06
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 15000
+    star_growth_30d_pct: 4.2
+    commits_last_90d: 180
+    commits_prev_90d: 142
+    merged_prs_per_30d: 32
+    avg_days_to_merge: 3.0
+    job_postings_30d: 220
+    so_questions_30d: 310
+    so_questions_prev_30d: 245
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 2               # LangChain.js, Mastra
+    public_api_methods: 50
+    migration_guide_count: 3
+    community_migrations: 8
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 8
+    doc_completeness_rating: 85
+    hipaa_deployments: 2
+    soc2_deployments: 5
+    gdpr_deployments: 4
+    other_compliance_deployments: 1
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "native"                # Vercel AI SDK v4 added native MCP client
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 5
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "VAI-001"
+    severity: "high"
+    category: "api_change"
+    frequency: "common"
+    production_impact: "high"
+    description: "Vercel AI SDK v3→v4 had breaking changes in streaming APIs. useChat, useCompletion hooks changed significantly. AI SDK Core (generateText, streamText) replaced old patterns."
+    affected_versions: "<4.0.0"
+    resolved: true
+    resolved_in: "4.0.0"
+    workaround: "Use AI SDK Core functions (generateText, streamText, generateObject) instead of the old experimental_streamData. See migration guide."
+    source: "https://sdk.vercel.ai/docs/migration-guides/migration-guide-3-to-4"
+    first_reported: "2024-10-01"
+
+  - id: "VAI-002"
+    severity: "medium"
+    category: "vendor_lock_in"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Vercel AI SDK is optimized for Vercel deployment. Self-hosting on other platforms (Railway, Fly.io) requires additional configuration for streaming to work correctly."
+    affected_versions: ">=3.0.0"
+    resolved: false
+    workaround: "Set proper headers for streaming responses on your host. Vercel AI SDK is runtime-agnostic but streaming middleware varies by platform."
+    source: "https://sdk.vercel.ai/docs/getting-started/nodejs"
+    first_reported: "2024-03-01"
+
+  - id: "VAI-003"
+    severity: "medium"
+    category: "server_side"
+    frequency: "uncommon"
+    production_impact: "medium"
+    description: "Edge runtime restrictions on Vercel limit certain Node.js APIs. Some AI providers require Node.js runtime, not Edge runtime."
+    affected_versions: ">=3.0.0"
+    resolved: false
+    workaround: "Set export const runtime = 'nodejs' in your Next.js route handlers when using providers that require Node.js APIs."
+    source: "https://sdk.vercel.ai/docs/troubleshooting"
+    first_reported: "2024-01-01"
+
+compatible_with:
+  - framework: "fastapi"
+    strength: 0.70
+    notes: "Vercel AI SDK frontend can call FastAPI Python backends for agent logic."
+  - framework: "mastra"
+    strength: 0.85
+    notes: "Mastra handles backend agent orchestration; Vercel AI SDK handles streaming UI."
+  - framework: "mcp_sdk_python"
+    strength: 0.82
+    notes: "Vercel AI SDK v4 MCP client connects to Python MCP servers."
+
+conflicts_with: []
+supersedes: []
+migrates_to:
+  - framework: "mastra"
+    effort: 0.4
+    notes: "Mastra provides more opinionated agent architecture if you need more than just streaming UI."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://sdk.vercel.ai/docs"
+    - "https://github.com/vercel/ai/releases"
+  notes: "Vercel AI SDK is the dominant TypeScript framework for building streaming AI UIs with Next.js. v4 added native MCP client support and a unified Core API (generateText, streamText, generateObject) that works across all LLM providers. Best for Next.js teams building user-facing AI products."

@@ -2,12 +2,19 @@
 TrueArch MCP Server — FastMCP v1.27.1
 
 Provides the following tools to AI agents and IDEs:
-  1. recommend_ai_stack          → Full multi-layer stack recommendation with Genome
-  2. compare_frameworks          → Dimension-by-dimension tradeoff comparison
-  3. get_framework_score         → TrueArch score for a single framework
-  4. get_recommendation          → Best frameworks in a specific category
-  5. latest_stable_versions      → Latest verified stable versions for requested frameworks
-  6. architecture_tradeoffs      → Key tradeoffs for a chosen framework
+  1.  quick_context              → Compressed 150-200 token context brief
+  2.  recommend_ai_stack         → Full multi-layer stack recommendation with Genome
+  3.  compare_frameworks         → Dimension-by-dimension tradeoff comparison
+  4.  get_framework_score        → TrueArch score for a single framework
+  5.  get_recommendation         → Best frameworks in a specific category
+  6.  latest_stable_versions     → Latest verified stable versions
+  7.  architecture_tradeoffs     → Key tradeoffs for a chosen framework
+  8.  get_code_patterns          → Version-pinned correct API patterns
+  9.  generate_adr               → Architecture Decision Record in Markdown
+  10. explain_score              → Why a framework received its TrueArch score
+  11. genome_compare             → Similarity between two Architecture Genomes
+  12. validate_code              → Detect deprecated APIs in LLM-generated code
+  13. get_telemetry_insights     → Query patterns and framework demand signals
 
 Transport:
   - Phase 1: stdio  (default — works with Cursor, Claude Code, any MCP client)
@@ -39,12 +46,13 @@ from src.recommendation.comparator import TradeoffComparator
 from src.recommendation.models import (
     StackQuery, ComplianceFlag, ScaleTier, PriorityAxis, ArchLayer,
 )
-from src.telemetry.storage import log_recommendation
+from src.telemetry.storage import log_recommendation, get_insights
 from src.data.patterns import get_pattern, get_available_use_cases
 
 # ── Bootstrap ────────────────────────────────────────────────────────────────
 
-_DATA_DIR = os.environ.get("TRUEARCH_DATA_DIR", "data/frameworks")
+from src.data.paths import frameworks_dir as _frameworks_dir
+_DATA_DIR = _frameworks_dir()
 
 _loader = FrameworkLoader(data_dir=_DATA_DIR)
 _frameworks = _loader.load_all()
@@ -56,6 +64,11 @@ for _fw in _frameworks.values():
 
 _stack_engine = StackRecommendationEngine(_frameworks)
 _comparator = TradeoffComparator(_frameworks)
+
+# Share the loaded catalog with the code validator so its deprecated-API
+# patterns come from the same YAML source (no second load).
+from src.mcp.code_validator import set_frameworks as _set_validator_frameworks
+_set_validator_frameworks(_frameworks)
 
 _FRAMEWORK_COUNT = len(_frameworks)
 _FRAMEWORK_IDS = sorted(_frameworks.keys())
@@ -97,8 +110,9 @@ def _clean_dict(d):
 
 @mcp.tool(
     description=(
-        "Get a compressed architecture brief (150-200 tokens) for a system you're building. "
-        "Returns only the key context (stack, alternatives, risks) needed for system prompts. "
+        "Get a token-budgeted, intent-aware architecture brief for a system you're building. "
+        "Classifies your query intent, selects only the relevant TrueArch data, reorders known "
+        "issues by relevance, tags data as verified/estimated, and stays within a token budget. "
         "Always call this first when starting a new AI system instead of recommend_ai_stack if you only need brief context."
     )
 )
@@ -109,25 +123,39 @@ def quick_context(
     priority: str = "reliability",
     language: str = "python",
     layers: list[str] | None = None,
+    token_budget: int = 400,
 ) -> dict:
     """
     Args:
-        problem:    Description of the system to build (min 10 chars).
-        compliance: List of compliance requirements: hipaa, soc2, gdpr, none.
-        scale:      prototype | growth | scale | enterprise.
-        priority:   low_latency | cost_efficiency | reliability | developer_speed | governance.
-        language:   Primary programming language (default: python).
-        layers:     Specific layers to recommend. Omit for all layers.
+        problem:      Description of the system to build (min 10 chars).
+        compliance:   List of compliance requirements: hipaa, soc2, gdpr, none.
+        scale:        prototype | growth | scale | enterprise.
+        priority:     low_latency | cost_efficiency | reliability | developer_speed | governance.
+        language:     Primary programming language (default: python).
+        layers:       Specific layers to recommend. Omit for all layers.
+        token_budget: Target size of the optimized context payload (default 400).
     """
+    from src.mcp.context_optimizer import compress_context
+
     full_result = recommend_ai_stack(problem, compliance, scale, priority, language, layers)
     if "error" in full_result:
         return full_result
-        
-    return {
+
+    optimized_context, estimated_tokens, intent = compress_context(
+        [{"tool": "recommend_ai_stack", "result": full_result}],
+        query=problem,
+        token_budget=token_budget,
+    )
+
+    return _clean_dict({
         "context_brief": full_result.get("context_brief"),
         "genome_short": full_result.get("genome_short"),
-        "confidence": full_result.get("confidence")
-    }
+        "confidence": full_result.get("confidence"),
+        "intent": intent.value,
+        "optimized_context": optimized_context,
+        "estimated_tokens": estimated_tokens,
+        "staleness_warning": full_result.get("staleness_warning"),
+    })
 
 # ── Tool 1: recommend_ai_stack ───────────────────────────────────────────────
 
@@ -147,15 +175,18 @@ def recommend_ai_stack(
     priority: str = "reliability",
     language: str = "python",
     layers: list[str] | None = None,
+    token_budget: int | None = None,
 ) -> dict:
     """
     Args:
-        problem:    Description of the system to build (min 10 chars).
-        compliance: List of compliance requirements: hipaa, soc2, gdpr, none.
-        scale:      prototype | growth | scale | enterprise.
-        priority:   low_latency | cost_efficiency | reliability | developer_speed | governance.
-        language:   Primary programming language (default: python).
-        layers:     Specific layers to recommend. Omit for all layers.
+        problem:      Description of the system to build (min 10 chars).
+        compliance:   List of compliance requirements: hipaa, soc2, gdpr, none.
+        scale:        prototype | growth | scale | enterprise.
+        priority:     low_latency | cost_efficiency | reliability | developer_speed | governance.
+        language:     Primary programming language (default: python).
+        layers:       Specific layers to recommend. Omit for all layers.
+        token_budget: If set, also return an intent-compressed `optimized_context`
+                      payload within this token budget (default: None = full result only).
     """
     compliance_flags = []
     for c in (compliance or ["none"]):
@@ -228,7 +259,22 @@ def recommend_ai_stack(
             "Confidence scores are reduced accordingly."
         )
 
-    return _clean_dict(result)
+    cleaned = _clean_dict(result)
+
+    # Optional: intent-compressed payload for token-sensitive callers.
+    if token_budget is not None:
+        from src.mcp.context_optimizer import compress_context
+
+        optimized_context, estimated_tokens, intent = compress_context(
+            [{"tool": "recommend_ai_stack", "result": cleaned}],
+            query=problem,
+            token_budget=token_budget,
+        )
+        cleaned["optimized_context"] = optimized_context
+        cleaned["estimated_tokens"] = estimated_tokens
+        cleaned["intent"] = intent.value
+
+    return cleaned
 
 
 # ── Tool 2: compare_frameworks ───────────────────────────────────────────────
@@ -300,16 +346,9 @@ def get_framework_score(framework_id: str) -> dict:
     fw = _frameworks[framework_id]
     scores = fw.computed_scores
 
-    # Staleness status
-    staleness_status = "fresh"
-    if scores.valid_until:
-        days_remaining = (scores.valid_until - date.today()).days
-        if days_remaining < 0:
-            staleness_status = "expired"
-        elif days_remaining < 7:
-            staleness_status = "stale"
-        elif days_remaining < 15:
-            staleness_status = "acceptable"
+    # Staleness status — single source of truth: computed from real data age
+    # by the scoring engine (based on curation.last_validated + signal dates).
+    staleness_status = scores.staleness_status or "fresh"
 
     return _clean_dict({
         "framework_id": fw.id,
@@ -330,6 +369,7 @@ def get_framework_score(framework_id: str) -> dict:
         },
         "staleness": {
             "status": staleness_status,
+            "warning": scores.staleness_warning,
             "last_computed": scores.last_computed.isoformat() if scores.last_computed else None,
             "valid_until": scores.valid_until.isoformat() if scores.valid_until else None,
         },
@@ -339,6 +379,10 @@ def get_framework_score(framework_id: str) -> dict:
             for i in fw.known_issues
             if i.severity in ("critical", "high")
         ],
+        "curation": {
+            "status": fw.curation.status if fw.curation else "curated",
+            "notes": fw.curation.notes if fw.curation else None,
+        } if fw.curation else None,
     })
 
 
@@ -500,7 +544,7 @@ def architecture_tradeoffs(framework_id: str) -> dict:
                 "source": issue.source,
             }
             for issue in sorted(fw.known_issues, key=lambda i: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(i.severity, 4))
-        ][:3],  # Limit to top 3 issues
+        ][:5],  # Limit to top 5 issues
         "compatible_with": [
             {
                 "framework": c.framework,
@@ -690,6 +734,68 @@ def explain_score(framework_id: str) -> dict:
         if score >= 30: return "Weak"
         return "Poor"
 
+    # 1. Compile migration_advisory
+    migration_advisory = None
+    if (scores.overall is not None and scores.overall < 70) or fw.curation.status == "deprecated" or any(issue.severity == "critical" or "MAINTENANCE" in issue.description.upper() for issue in fw.known_issues):
+        reasons = []
+        if scores.overall is not None and scores.overall < 70:
+            reasons.append(f"overall score is low ({scores.overall}/100)")
+        if fw.curation.status == "deprecated":
+            reasons.append("curation status is deprecated")
+        for issue in fw.known_issues:
+            if "MAINTENANCE" in issue.description.upper():
+                reasons.append("framework is in maintenance mode")
+                break
+        migration_advisory = f"Migration is recommended because {', and '.join(reasons)}."
+
+    # 2. Compile superseded_by relationships
+    superseded_by = []
+    for other_fw in _frameworks.values():
+        for s in getattr(other_fw, "supersedes", []):
+            if s.framework == fw.id:
+                superseded_by.append({
+                    "framework_id": other_fw.id,
+                    "framework_name": other_fw.name,
+                    "confidence": s.confidence,
+                    "notes": s.notes
+                })
+                
+    # 3. Compile recommended_alternatives
+    recommended_alternatives = []
+    # Add from migrates_to
+    for m in getattr(fw, "migrates_to", []):
+        alt_fw = _frameworks.get(m.framework)
+        alt_name = alt_fw.name if alt_fw else m.framework
+        alt_score = alt_fw.computed_scores.overall if alt_fw else None
+        recommended_alternatives.append({
+            "framework_id": m.framework,
+            "framework_name": alt_name,
+            "overall_score": alt_score,
+            "effort_estimate": m.effort,
+            "notes": m.notes,
+            "type": "direct_migration_target"
+        })
+    # If no migrates_to, fallback to category peers with higher score than this framework
+    if not recommended_alternatives:
+        category_peers = [other_fw for other_fw in _frameworks.values() 
+                          if other_fw.category == fw.category and other_fw.id != fw.id]
+        for peer in category_peers:
+            if peer.computed_scores.overall is not None and (scores.overall is None or peer.computed_scores.overall > scores.overall):
+                recommended_alternatives.append({
+                    "framework_id": peer.id,
+                    "framework_name": peer.name,
+                    "overall_score": peer.computed_scores.overall,
+                    "effort_estimate": 0.5, # default medium effort
+                    "notes": f"Category peer with higher score ({peer.computed_scores.overall})",
+                    "type": "category_peer"
+                })
+                
+    recommended_alternatives = sorted(
+        recommended_alternatives,
+        key=lambda x: x.get("overall_score") or 0,
+        reverse=True
+    )
+
     return _clean_dict({
         "framework_id": fw.id,
         "framework_name": fw.name,
@@ -768,6 +874,9 @@ def explain_score(framework_id: str) -> dict:
             "last_validated": fw.curation.last_validated.isoformat(),
             "curator_notes": fw.curation.notes[:200] if fw.curation.notes else None,
         },
+        "migration_advisory": migration_advisory,
+        "recommended_alternatives": recommended_alternatives,
+        "superseded_by": superseded_by,
     })
 
 
@@ -796,10 +905,80 @@ def genome_compare(genome_a: str, genome_b: str) -> dict:
     return genome_similarity(genome_a, genome_b)
 
 
+# ── Tool 11: validate_code ──────────────────────────────────────────────────
+
+@mcp.tool(
+    description=(
+        "Validate LLM-generated code for deprecated API patterns — the fastest way to "
+        "catch a hallucinated or stale API before it fails at runtime. "
+        "Detects removed/renamed APIs, wrong import paths, and version-specific mismatches "
+        "for 15 frameworks including Pinecone, LangChain, LangGraph, LlamaIndex, Qdrant, "
+        "Weaviate, Chroma, OpenAI SDK, Anthropic SDK, AutoGen, CrewAI, PydanticAI, FastAPI, "
+        "Supabase, and Ollama. Returns each violation with severity, the exact correction, "
+        "and a docs link (advisory-severity notes are returned separately from hard violations). "
+        "Pass the framework version to skip patterns not yet deprecated at that version. "
+        "Call this right after generating code for any supported framework."
+    )
+)
+def validate_code(
+    code: str,
+    framework_id: str,
+    strict: bool = False,
+    version: Optional[str] = None,
+) -> dict:
+    """
+    Args:
+        code:         The code snippet to validate (any length).
+        framework_id: Framework to validate against (e.g., 'pinecone', 'langchain', 'langgraph',
+                      'qdrant', 'openai_sdk', 'crewai', 'fastapi').
+        strict:       If True, also checks patterns from all other frameworks present in the code.
+        version:      Optional framework version the code targets (e.g. '2.1.0'). When set,
+                      patterns for APIs not yet deprecated at that version are skipped.
+    """
+    from src.mcp.code_validator import validate_code_snippet, list_checked_frameworks
+
+    # Check if we have patterns for this framework
+    supported = [f["framework_id"] for f in list_checked_frameworks()]
+    if framework_id not in supported and not strict:
+        return {
+            "warning": f"No deprecated API patterns available for '{framework_id}' yet.",
+            "supported_frameworks": supported,
+            "verdict": "unchecked",
+            "summary": (
+                f"TrueArch does not yet have a deprecated API pattern library for '{framework_id}'. "
+                "Validation was skipped. Use strict=True to check against all known patterns."
+            ),
+        }
+
+    result = validate_code_snippet(code, framework_id, strict=strict, version=version)
+    return _clean_dict(result.model_dump())
+
+
+# ── Tool 12: get_telemetry_insights ──────────────────────────────────────────
+
+@mcp.tool(
+    description=(
+        "Get insights from TrueArch usage telemetry. Returns the most-queried frameworks, "
+        "top comparison pairs, query volume trends, and compliance flag frequency. "
+        "Use to understand what AI stack decisions developers are actually making in production "
+        "and which frameworks have the highest real-world demand."
+    )
+)
+def get_telemetry_insights(top_n: int = 10) -> dict:
+    """
+    Args:
+        top_n: Number of top results to return per category (max 20).
+    """
+    try:
+        return _clean_dict(get_insights(top_n=top_n))
+    except Exception as e:
+        return {"error": f"Failed to read telemetry: {str(e)}"}
+
+
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 _START_TIME = date.today().isoformat()
-_VERSION = "1.0.0"
+_VERSION = "2.0.0"
 
 
 def _build_http_app() -> FastAPI:
@@ -852,6 +1031,8 @@ def _build_http_app() -> FastAPI:
                 "generate_adr",
                 "explain_score",
                 "genome_compare",
+                "validate_code",
+                "get_telemetry_insights",
             ],
         })
 

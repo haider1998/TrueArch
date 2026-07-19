@@ -77,6 +77,54 @@ computed_scores:
 
 known_issues: []
 
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "CHR-001"
+    severity: "critical"
+    bad_pattern: '\bchromadb\.Client\s*\('
+    bad_example: |
+      import chromadb
+      client = chromadb.Client()
+    correct_example: |
+      import chromadb
+      # Ephemeral (in-memory) or persistent clients are explicit in v0.4+:
+      client = chromadb.PersistentClient(path='./chroma')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      chromadb.Client() with Settings is the pre-0.4 pattern. v0.4+ uses explicit
+      PersistentClient(path=...) or EphemeralClient() constructors.
+    docs_url: "https://docs.trychroma.com/docs/run-chroma/persistent-client"
+
+  - id: "CHR-002"
+    severity: "high"
+    bad_pattern: '\bSettings\(\s*chroma_db_impl\s*='
+    bad_example: |
+      from chromadb.config import Settings
+      client = chromadb.Client(Settings(chroma_db_impl='duckdb+parquet', persist_directory='./db'))
+    correct_example: |
+      client = chromadb.PersistentClient(path='./db')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      The chroma_db_impl / persist_directory Settings pattern (duckdb+parquet) was
+      removed in v0.4. Use PersistentClient(path=...); data migrates via `chroma utils`.
+    docs_url: "https://docs.trychroma.com/docs/run-chroma/persistent-client"
+
+  - id: "CHR-003"
+    severity: "medium"
+    bad_pattern: '\.persist\s*\(\s*\)'
+    bad_example: "client.persist()"
+    correct_example: |
+      # PersistentClient writes to disk automatically; drop the explicit call.
+      client = chromadb.PersistentClient(path='./db')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      The explicit client.persist() call was removed in v0.4 — PersistentClient
+      persists automatically. Remove the call.
+    docs_url: "https://docs.trychroma.com/docs/run-chroma/persistent-client"
+
 compatible_with:
   - framework: "langchain"
     strength: 0.90

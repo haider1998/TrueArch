@@ -1,10 +1,38 @@
+import re
 from datetime import date
 from typing import List, Optional, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class GenomeDimension(BaseModel):
     key: str
     value: str
+
+
+class DeprecatedPattern(BaseModel):
+    """A known deprecated API pattern for the `validate_code` tool.
+
+    `severity="advisory"` means the code works but a better pattern exists — it is
+    reported as a note, not a violation.
+    """
+    id: str
+    severity: Literal["critical", "high", "medium", "advisory"]
+    bad_pattern: str
+    bad_example: str
+    correct_example: str
+    version_deprecated: str
+    version_correct: str
+    description: str
+    docs_url: Optional[str] = None
+    language: str = "python"
+
+    @field_validator("bad_pattern")
+    @classmethod
+    def _regex_must_compile(cls, v: str) -> str:
+        try:
+            re.compile(v, re.MULTILINE)
+        except re.error as e:
+            raise ValueError(f"invalid regex for deprecated_pattern: {e}") from e
+        return v
 
 class ProductionStabilitySignals(BaseModel):
     breaking_changes_per_90d: int
@@ -85,6 +113,10 @@ class KnownIssue(BaseModel):
     resolved_in: Optional[str] = None
     workaround: Optional[str] = None
     source: str
+    category: Optional[str] = None
+    frequency: Optional[str] = None
+    production_impact: Optional[str] = None
+    first_reported: Optional[date] = None
 
 class Compatibility(BaseModel):
     framework: str
@@ -133,6 +165,7 @@ class FrameworkSchema(BaseModel):
     computed_scores: ComputedScores
     
     known_issues: List[KnownIssue] = Field(default_factory=list)
+    deprecated_patterns: List[DeprecatedPattern] = Field(default_factory=list)
     compatible_with: List[Compatibility] = Field(default_factory=list)
     conflicts_with: List[Conflict] = Field(default_factory=list)
     supersedes: List[Supersedes] = Field(default_factory=list)

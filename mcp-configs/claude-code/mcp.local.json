@@ -1,10 +1,9 @@
 {
   "mcpServers": {
     "truearch": {
-      "command": "python",
-      "args": ["-m", "src.mcp.server"],
-      "cwd": "/REPLACE_WITH_YOUR_PATH/TrueArch",
-      "description": "TrueArch Architecture Intelligence (local stdio mode — for development)"
+      "command": "uvx",
+      "args": ["truearch-mcp"],
+      "description": "TrueArch — the hallucination killer for AI coding agents (local stdio, no clone). One-liner: claude mcp add truearch -- uvx truearch-mcp"
     }
   }
 }

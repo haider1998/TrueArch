@@ -109,6 +109,27 @@ known_issues:
     source: string             # URL to issue/PR/blog post
 
 # ─────────────────────────────────────────────
+# SECTION 4.5: Deprecated API Patterns (post-generation code validation)
+# ─────────────────────────────────────────────
+# Powers the `validate_code` MCP tool — the daily-loop "hallucination killer".
+# Each entry is a known breaking change / deprecation that LLMs frequently emit
+# because they were trained on older code. Keep bad_pattern narrow to avoid
+# false positives, and every entry MUST have a bad_example that matches its own
+# bad_pattern and a correct_example that does NOT (enforced by tests).
+deprecated_patterns:
+  - id: string                 # Framework-prefixed ID, e.g. "PCN-001"
+    severity: string           # "critical" | "high" | "medium" | "advisory"
+                               # advisory = works, but a better pattern exists (rendered as a note, not a violation)
+    bad_pattern: string        # Python regex (MULTILINE) matching the deprecated usage
+    bad_example: string        # Minimal code showing the wrong pattern (must match bad_pattern)
+    correct_example: string    # The correct modern replacement (must NOT match bad_pattern)
+    version_deprecated: string # Version where the pattern was removed/deprecated, e.g. "3.0.0"
+    version_correct: string    # Version range where correct_example is valid, e.g. ">=5.0.0"
+    description: string        # Why it's wrong and what changed
+    docs_url: string           # Link to the migration guide / API reference
+    language: string           # optional; "python" (default) | "typescript" | etc.
+
+# ─────────────────────────────────────────────
 # SECTION 5: Compatibility
 # ─────────────────────────────────────────────
 compatible_with:

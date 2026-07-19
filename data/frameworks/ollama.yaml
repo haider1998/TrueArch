@@ -1,0 +1,202 @@
+schema_version: "1.0"
+
+id: "ollama"
+name: "Ollama"
+category: "llm_provider"
+subcategory: "local-inference"
+url: "https://github.com/ollama/ollama"
+docs_url: "https://ollama.com/docs"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.3.12"
+latest_stable_released: "2026-04-28"
+
+genome_dimension:
+  key: "D1_llm_provider"
+  value: "OLL"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 2
+    issue_resolution_ratio: 0.68
+    open_security_advisories: 0
+    incident_rate: 0.12                  # higher because self-hosted infra failures happen
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 88000                  # one of the fastest-growing AI repos
+    star_growth_30d_pct: 5.1
+    commits_last_90d: 180
+    commits_prev_90d: 145
+    merged_prs_per_30d: 28
+    avg_days_to_merge: 5.0
+    job_postings_30d: 85                 # mostly for devs building local AI tools
+    so_questions_30d: 420
+    so_questions_prev_30d: 310
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3               # vLLM, llama.cpp, Llamafile
+    public_api_methods: 20
+    migration_guide_count: 2
+    community_migrations: 8
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 14
+    doc_completeness_rating: 72
+    hipaa_deployments: 3                 # possible but requires own infra compliance
+    soc2_deployments: 2
+    gdpr_deployments: 5                  # strong GDPR fit (data stays on-prem)
+    other_compliance_deployments: 1
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: false
+    is_thread_safe: false
+    has_concurrency_benchmarks: false
+    state_management_rating: 2
+    multiagent_support: "limited"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "OLL-001"
+    severity: "high"
+    category: "performance"
+    frequency: "very_common"
+    production_impact: "high"
+    description: "Model inference speed is GPU-bound. Without a dedicated GPU, response latency for 13B+ models can be 10-30 seconds per token on CPU."
+    affected_versions: ">=0.1.0"
+    resolved: false
+    workaround: "Use quantized models (Q4_K_M recommended). For production, use dedicated GPU hardware or cloud GPU instances."
+    source: "curated"
+    first_reported: "2024-01-01"
+
+  - id: "OLL-002"
+    severity: "high"
+    category: "production_readiness"
+    frequency: "common"
+    production_impact: "high"
+    description: "Ollama is designed for local development. It lacks native load balancing, auth, rate limiting, or HA. Do not expose directly to the internet."
+    affected_versions: ">=0.1.0"
+    resolved: false
+    workaround: "Use a reverse proxy (nginx) with auth. For production scale, use LiteLLM proxy with Ollama as a backend."
+    source: "curated"
+    first_reported: "2024-02-01"
+
+  - id: "OLL-003"
+    severity: "medium"
+    category: "api_compatibility"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Ollama provides an OpenAI-compatible API endpoint but not all OpenAI features are supported (e.g., function calling varies by model)."
+    affected_versions: ">=0.1.30"
+    resolved: false
+    workaround: "Test function calling support per model. Use ollama.chat() native API for guaranteed compatibility."
+    source: "https://ollama.com/blog/openai-compatibility"
+    first_reported: "2024-04-01"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "OLL-001"
+    severity: "medium"
+    bad_pattern: '\bollama\.generate\s*\('
+    bad_example: "response = ollama.generate(model='llama3', prompt='Why is the sky blue?')"
+    correct_example: |
+      response = ollama.chat(
+          model='llama3',
+          messages=[{'role': 'user', 'content': 'Why is the sky blue?'}],
+      )
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      For conversational use prefer ollama.chat() with a messages list over the
+      raw generate(prompt=...) completion endpoint, which lacks chat templating.
+    docs_url: "https://github.com/ollama/ollama-python"
+
+  - id: "OLL-002"
+    severity: "advisory"
+    bad_pattern: "'model'\\s*:\\s*'llama2'"
+    bad_example: "ollama.chat(model='llama2', messages=[...])  # via {'model': 'llama2'}"
+    correct_example: "ollama.chat(model='llama3.2', messages=[...])"
+    version_deprecated: "0.3.0"
+    version_correct: ">=0.3.0"
+    description: >
+      llama2 is superseded by llama3.x. It still runs, but prefer a current model
+      tag (llama3.1 / llama3.2) for materially better quality.
+    docs_url: "https://ollama.com/library/llama3.2"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "OLL-001"
+    severity: "medium"
+    bad_pattern: '\bollama\.generate\s*\('
+    bad_example: "response = ollama.generate(model='llama3', prompt='hi')"
+    correct_example: |
+      import ollama
+      response = ollama.chat(model='llama3', messages=[{'role': 'user', 'content': 'hi'}])
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      The single-turn generate() endpoint is legacy for chat models. Use
+      ollama.chat() with a messages list for conversational models.
+    docs_url: "https://github.com/ollama/ollama-python"
+
+  - id: "OLL-002"
+    severity: "advisory"
+    bad_pattern: "'http://localhost:11434/api/generate'"
+    bad_example: "requests.post('http://localhost:11434/api/generate', json={...})"
+    correct_example: |
+      import ollama
+      ollama.chat(model='llama3', messages=[...])
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.1.0"
+    description: >
+      Hand-rolling HTTP calls to /api/generate works, but the official ollama client
+      handles streaming, errors, and the chat format for you.
+    docs_url: "https://github.com/ollama/ollama-python"
+
+compatible_with:
+  - framework: "langchain"
+    strength: 0.88
+    notes: "ChatOllama and OllamaEmbeddings provide native LangChain integration."
+  - framework: "langgraph"
+    strength: 0.82
+    notes: "Works as LLM backend via LangChain Ollama integration."
+
+conflicts_with:
+  - framework: "openai_sdk"
+    severity: "low"
+    notes: "Not a conflict per se, but switching from Ollama (local) to OpenAI (cloud) requires changing endpoint and auth."
+
+supersedes: []
+migrates_to:
+  - framework: "openai_sdk"
+    effort: 0.2
+    notes: "Ollama's OpenAI-compatible API means many codebases can switch endpoints with minimal code change."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://ollama.com/docs"
+    - "https://github.com/ollama/ollama/releases"
+  notes: "Ollama is the dominant local inference tool for developers but is NOT production-ready as a standalone service. Best used for dev/test, GDPR-constrained environments, and cost-sensitive prototyping. For production local inference at scale, use vLLM."

@@ -84,6 +84,10 @@ known_issues:
     resolved_in: "0.100.0"
     workaround: null
     source: "https://github.com/fastapi/fastapi/issues/3011"
+    category: "performance"
+    frequency: "low"
+    production_impact: "low"
+    first_reported: "2023-04-12"
 
   - id: "FAPI-002"
     severity: "low"
@@ -93,6 +97,85 @@ known_issues:
     resolved_in: null
     workaround: "Use Celery, ARQ, or Redis Queue for reliable background task execution in production"
     source: "https://fastapi.tiangolo.com/tutorial/background-tasks/"
+    category: "background-tasks"
+    frequency: "medium"
+    production_impact: "low"
+    first_reported: "2023-08-15"
+
+  - id: "FAPI-003"
+    severity: "medium"
+    description: "Pydantic v2 migration compatibility issues — older packages that depend on Pydantic v1 can conflict with FastAPI versions that strictly require Pydantic v2."
+    affected_versions: ">= 0.100.0"
+    resolved: false
+    resolved_in: null
+    workaround: "Use pydantic.v1 compatibility import layer, or pin FastAPI to < 0.100 if Pydantic v1 is absolutely required."
+    source: "https://github.com/fastapi/fastapi"
+    category: "compatibility"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2025-07-15"
+
+  - id: "FAPI-004"
+    severity: "high"
+    description: "Middleware ordering side-effects — adding CORS middleware after custom authentication middleware can block OPTIONS preflight requests, causing CORS failures in web clients."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Always add CORS middleware as the last middleware so that it executes first in the ASGI stack."
+    source: "https://github.com/fastapi/fastapi"
+    category: "security/cors"
+    frequency: "high"
+    production_impact: "high"
+    first_reported: "2025-09-02"
+
+  - id: "FAPI-005"
+    severity: "high"
+    description: "Sync endpoint execution thread pool starvation — defining endpoints with def instead of async def runs them in an external threadpool. Under high concurrent load, this pool can starve, causing extreme API latency."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Prefer async def for all endpoints; for CPU-heavy tasks or blocking I/O, offload tasks explicitly using external workers (e.g. Celery) or an async-compatible client library."
+    source: "https://github.com/fastapi/fastapi"
+    category: "performance"
+    frequency: "high"
+    production_impact: "high"
+    first_reported: "2025-11-10"
+
+  - id: "FAPI-006"
+    severity: "medium"
+    description: "Memory usage growth during heavy query parameter validation — complex nested query parameters using Pydantic models can lead to high memory consumption per request."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Simplify query parameter models or validate in the request body instead of using complex query string schemas."
+    source: "https://github.com/fastapi/fastapi"
+    category: "resource-consumption"
+    frequency: "low"
+    production_impact: "medium"
+    first_reported: "2026-01-08"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "FAP-V-001"
+    severity: "medium"
+    bad_pattern: 'from\s+pydantic\s+import\s+.*\bvalidator\b'
+    bad_example: |
+      from pydantic import validator
+
+      @validator('field')
+      def check_field(cls, v): ...
+    correct_example: |
+      from pydantic import field_validator
+
+      @field_validator('field')
+      @classmethod
+      def check_field(cls, v): ...
+    version_deprecated: "2.0.0"
+    version_correct: ">=2.0.0"
+    description: >
+      @validator is deprecated in Pydantic v2 (used by FastAPI). Use @field_validator
+      with @classmethod instead.
+    docs_url: "https://docs.pydantic.dev/latest/migration/"
 
 compatible_with:
   - framework: "langgraph"

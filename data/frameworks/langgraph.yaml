@@ -96,6 +96,10 @@ known_issues:
     resolved_in: null
     workaround: "Use DeltaChannel (beta, v1.2.0+) to reduce checkpoint overhead; implement state pruning for long conversations"
     source: "https://github.com/langchain-ai/langgraph"
+    category: "state-management"
+    frequency: "high"
+    production_impact: "medium"
+    first_reported: "2025-05-10"
 
   - id: "LGR-002"
     severity: "high"
@@ -105,6 +109,10 @@ known_issues:
     resolved_in: null
     workaround: "Implement explicit step budget limits, time budgets, and NEEDS_HUMAN escalation nodes in graph config. Do NOT rely on prompt-only stop conditions in production."
     source: "https://github.com/langchain-ai/langgraph"
+    category: "execution"
+    frequency: "high"
+    production_impact: "high"
+    first_reported: "2025-06-15"
 
   - id: "LGR-003"
     severity: "medium"
@@ -114,6 +122,10 @@ known_issues:
     resolved_in: null
     workaround: "Pin all dependency versions; use explicit requirements.txt lockfiles; test revision upgrades in staging first"
     source: "https://github.com/langchain-ai/langgraph"
+    category: "deployment"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2025-09-01"
 
   - id: "LGR-004"
     severity: "medium"
@@ -123,10 +135,104 @@ known_issues:
     resolved_in: null
     workaround: "Validate all tool invocations against explicit allowlists; scope API tokens with least privilege; treat all agent inputs as adversarial"
     source: "LangGraph security best practices documentation"
+    category: "security"
+    frequency: "low"
+    production_impact: "high"
+    first_reported: "2025-10-18"
+
+  - id: "LGR-005"
+    severity: "high"
+    description: "Node execution timeout handling — nodes running async tasks (like external API calls) can hang indefinitely without throwing an exception, blocking the entire graph execution."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Implement explicit task timeouts using standard asyncio.wait_for inside graph node functions."
+    source: "https://github.com/langchain-ai/langgraph"
+    category: "execution"
+    frequency: "medium"
+    production_impact: "high"
+    first_reported: "2025-11-12"
+
+  - id: "LGR-006"
+    severity: "medium"
+    description: "Dynamic loop configurations in map_reduce patterns — dynamically spawned map-reduce node lists can fail to scale or serialize correctly if the sub-state variables do not conform to strict type definitions."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Ensure all sub-states map to simple typed Dicts or Pydantic models with clear fields; avoid passing raw DB connection or complex class instances."
+    source: "https://github.com/langchain-ai/langgraph"
+    category: "state-management"
+    frequency: "low"
+    production_impact: "medium"
+    first_reported: "2026-02-05"
+
+  - id: "LGR-007"
+    severity: "high"
+    description: "Memory leak in PostgresSaver under high concurrent load — connection pooling leak when using async connection pool with multiple concurrent requests to the same Postgres database."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Use connection pooling explicitly through asyncpg.create_pool, and pass pool objects to custom Sqlite/Postgres checkpointer wrappers rather than using default autocommitsaver."
+    source: "https://github.com/langchain-ai/langgraph"
+    category: "persistence"
+    frequency: "low"
+    production_impact: "high"
+    first_reported: "2026-03-20"
+
+  - id: "LGR-008"
+    severity: "medium"
+    description: "Incompatible streaming events in nested graphs — parent graph listening to run-level stream events fails to correctly propagate or serialize stream events from nested sub-graphs."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Use the new stream_mode with custom callback handlers to propagate sub-graph events to the top-level parent's stream stream_log."
+    source: "https://github.com/langchain-ai/langgraph"
+    category: "streaming"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2026-04-10"
 
 # ─────────────────────────────────────────────
 # COMPATIBILITY
 # ─────────────────────────────────────────────
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "LGR-V-001"
+    severity: "critical"
+    bad_pattern: 'from\s+langgraph\.checkpoint\.memory\s+import\s+MemorySaver'
+    bad_example: "from langgraph.checkpoint.memory import MemorySaver"
+    correct_example: |
+      # For testing/dev (in-memory):
+      from langgraph.checkpoint.memory import InMemorySaver
+      # For production (persistent):
+      from langgraph.checkpoint.redis.aio import AsyncRedisSaver
+    version_deprecated: "1.2.0"
+    version_correct: ">=1.2.0"
+    description: >
+      MemorySaver is non-persistent and not thread-safe for production. In
+      LangGraph v1.2+, use InMemorySaver for tests and AsyncRedisSaver or
+      AsyncPostgresSaver for production.
+    docs_url: "https://langchain-ai.github.io/langgraph/reference/checkpoints/"
+
+  # Advisory (not a hard error): compiling without a checkpointer is valid for
+  # stateless graphs, so this is a note, not a violation. Kept narrow (empty
+  # parens only) so builder.compile(checkpointer=cp) never matches.
+  - id: "LGR-V-002"
+    severity: "advisory"
+    bad_pattern: '\.compile\(\s*\)'
+    bad_example: "graph = builder.compile()  # No checkpointer — stateless"
+    correct_example: |
+      from langgraph.checkpoint.memory import InMemorySaver
+      checkpointer = InMemorySaver()
+      graph = builder.compile(checkpointer=checkpointer)
+    version_deprecated: "1.0.0"
+    version_correct: ">=1.0.0"
+    description: >
+      Compiling without a checkpointer creates a stateless graph — thread history
+      and interrupts won't work. If you need persistence, pass a checkpointer.
+      (Intentional for stateless graphs — hence advisory, not an error.)
+    docs_url: "https://langchain-ai.github.io/langgraph/reference/graphs/"
+
 compatible_with:
   - framework: "redis"
     strength: 0.95
