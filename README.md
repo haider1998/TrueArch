@@ -5,43 +5,44 @@ colorFrom: indigo
 colorTo: blue
 sdk: docker
 pinned: false
-short_description: Deterministic AI architecture intelligence MCP server
+short_description: The hallucination killer for AI coding agents (MCP server)
 ---
 
 # TrueArch
 
-> **Architecture intelligence layer for AI-native engineering.**  
-> Deterministic. Scored. Auditable. Shared across every AI agent that uses it.
+> **The hallucination killer for AI coding agents.**
+> Real versions, real APIs, and validated code patterns for 38 AI frameworks — served over MCP to Claude Code, Cursor, Copilot, Antigravity, Windsurf, and Zed.
 
 ---
 
-## The Problem TrueArch Solves
+## Why
 
-Every time a developer asks Claude Code, Cursor, or Codex to architect an AI system, the AI:
-- Re-derives framework knowledge from scratch (wastes 500–2000 tokens)
-- Hallucinates version numbers
-- Gives a different answer than the colleague who asked 5 minutes ago
+Your coding agent was trained on a snapshot of the world. So every day it:
 
-TrueArch is the **shared pre-computation layer** — architectural intelligence computed once, curated by humans, and served deterministically to every AI agent that asks.
+- writes `pinecone.init(...)` — **removed in Pinecone v3**
+- imports `from langchain.chat_models import ChatOpenAI` — **moved to `langchain_openai` in v0.2**
+- pins `weaviate.Client(url)` — **the v4 client is a complete rewrite**
+- recommends AutoGen with the `from autogen import AssistantAgent` API — **that flat API is v0.2; v0.4 is a different package**
+
+These aren't reasoning failures — they're **stale-knowledge failures**, and a smarter model doesn't fix them. TrueArch does: it gives the agent a live, curated ground truth *at generation time*, then checks the code it produced.
+
+TrueArch runs on the loop you hit every session:
+
+1. **`quick_context`** — a token-cheap, intent-aware brief before the agent designs anything.
+2. **`latest_stable_versions`** — real pinned versions for your lockfile, not hallucinated ones.
+3. **`validate_code`** — scan the generated code for deprecated APIs and get the exact fix back.
+
+Architecture recommendations, ADRs, and the Architecture Genome are still here — as the depth layer for when you're standing up a *new* system, not writing the next line.
 
 ---
 
-## Connect in 30 Seconds
+## Install in 60 seconds
 
-### Cursor
-Add to `.cursor/mcp.json` in your project:
-```json
-{
-  "mcpServers": {
-    "truearch": {
-      "url": "https://smhrizvi281-truearch-mcp.hf.space/mcp"
-    }
-  }
-}
-```
+TrueArch ships as an MCP server. Two ways to connect:
 
-### Claude Code
-Add to your `claude_desktop_config.json`:
+### Option A — zero install (hosted)
+Point your client at the hosted endpoint (no clone, no Python):
+
 ```json
 {
   "mcpServers": {
@@ -53,191 +54,156 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-Then ask your AI agent:
-> *"Use TrueArch to recommend a stack for a multi-agent HIPAA patient support platform in Python"*
+- **Claude Code:** add the block above to `claude_desktop_config.json`.
+- **Cursor:** add it to `.cursor/mcp.json`.
+- **VS Code / Windsurf / Zed / Antigravity / Continue:** ready-made configs in [`mcp-configs/`](./mcp-configs).
 
----
+### Option B — run it locally (`uvx`, no clone)
 
-## What You Get Back
-
-```yaml
-# Example output from recommend_ai_stack()
-
-orchestration:
-  framework: LangGraph
-  version: "0.4.1"
-  score: 84/100
-  confidence: 81%
-  reason: "Stateful graph-based orchestration with native HIPAA-compatible patterns"
-
-vector_db:
-  framework: Qdrant
-  score: 87/100
-  reason: "Production-stable, self-hostable (HIPAA data residency)"
-
-observability:
-  framework: OpenTelemetry
-  reason: "Vendor-neutral audit trail — required for HIPAA compliance"
-
-genome: "MA-STAT-HOR-HIPAA-PY-MCP-REDIS"
-confidence: 81%
-score_band: "Strong"
-review_by: "2027-05-17"
-adr: "[committable Markdown ADR included]"
-
-warnings:
-  - "CrewAI not recommended for HIPAA: unresolved memory persistence issues"
-  - "AutoGen adds latency overhead — evaluate carefully for real-time use cases"
+```bash
+# Claude Code, one line:
+claude mcp add truearch -- uvx truearch-mcp
 ```
 
+or, for any client, add a stdio server:
+
+```json
+{
+  "mcpServers": {
+    "truearch": { "command": "uvx", "args": ["truearch-mcp"] }
+  }
+}
+```
+
+Telemetry (if you enable it) stays **local-only** — raw queries are never stored, only a hash.
+
+Then ask your agent:
+> *"Before you write this, use TrueArch to pin the versions and validate the code."*
+
 ---
 
-## MCP Tools Available
+## The daily loop
+
+**1. Catch the hallucination.** Your agent just wrote v2 Pinecone code:
+
+```python
+validate_code(
+  code="import pinecone\npinecone.init(api_key='x')",
+  framework_id="pinecone",
+)
+```
+```json
+{
+  "verdict": "critical",
+  "violations": [{
+    "pattern_id": "PCN-001",
+    "severity": "critical",
+    "matched_text": "pinecone.init(",
+    "correct_example": "from pinecone import Pinecone\npc = Pinecone(api_key='x')",
+    "description": "pinecone.init() was removed in Pinecone v3. Use the Pinecone() class constructor.",
+    "docs_url": "https://docs.pinecone.io/guides/getting-started/migration-guide"
+  }]
+}
+```
+
+Pass `version="2.2.4"` and TrueArch stays quiet — on that release `init()` is still valid. It's version-aware, not just pattern-matching.
+
+**2. Pin the real versions.**
+
+```python
+latest_stable_versions(framework_ids=["langgraph", "anthropic_sdk"])
+# → exact stable versions + data_age_days, with a staleness warning if the data is old
+```
+
+**3. Ground the design** with `quick_context` — a budgeted brief that classifies your intent, surfaces the relevant known-issues first, and tags every data point verified/estimated.
+
+**Covered for code validation (15 frameworks, growing):** Pinecone, LangChain, LangGraph, LlamaIndex, Qdrant, Weaviate, Chroma, OpenAI SDK, Anthropic SDK, AutoGen, CrewAI, PydanticAI, FastAPI, Supabase, Ollama. Unsupported frameworks return an honest `"unchecked"` verdict rather than a false pass.
+
+---
+
+## Does it actually help? (honest numbers)
+
+We ran 15 architecture scenarios through Gemini 2.5 Flash, with and without TrueArch context ([full results + methodology](./benchmark/evaluation_results.md)):
+
+| Signal | Baseline | With TrueArch |
+|---|---|---|
+| **Deterministic fact-checks** (objective) | 24/30 | **30/30** |
+| Judge quality score (subjective, avg/10) | 6.2 | 7.2 |
+| Token overhead | — | +44% total tokens |
+
+The load-bearing result is the deterministic one: **TrueArch eliminated all 6 factual misses** — deprecated APIs, stale versions, and maintenance-mode recommendations. The quality delta is a *same-model-judged, single-run, N=15* estimate — directional, not a benchmark score. We spell out every caveat in the results file rather than lead with the rosy number.
+
+---
+
+## Freshness is a feature, not a promise
+
+Stale data is the failure mode TrueArch exists to prevent, so it never hides its own age:
+
+- Every score's confidence **decays** with the age of its underlying signals.
+- `latest_stable_versions` and `get_framework_score` return a **staleness warning** when data is old — computed from the real curation/signal dates, not reset on restart.
+- A **nightly GitHub Action** crawls GitHub + PyPI/npm, applies only objective fields (versions, release dates, stars), and opens a **PR for human review** — subjective judgements are never auto-overwritten.
+
+---
+
+## Depth layer — for new systems
+
+When you're architecting from scratch, not writing a line:
 
 | Tool | Purpose |
 |---|---|
-| `recommend_ai_stack` | Full multi-layer recommendation + Genome + ADR |
-| `quick_context` | 150-200 token context compression for system prompts |
+| `recommend_ai_stack` | Full multi-layer recommendation + Architecture Genome + ADR |
 | `compare_frameworks` | Head-to-head across 5 scoring dimensions |
-| `get_framework_score` | Single framework TrueArch score + staleness |
+| `get_framework_score` | Single-framework TrueArch score + staleness |
 | `get_recommendation` | Top-N frameworks in a category |
-| `latest_stable_versions` | Pinned, verified versions for lockfiles + staleness warnings |
 | `architecture_tradeoffs` | Known issues, compatibility, migration paths |
-| `get_code_patterns` | Version-pinned, validated architecture code snippets |
+| `get_code_patterns` | Version-pinned, validated code snippets |
+| `generate_adr` | Committable Markdown Architecture Decision Record |
+| `explain_score` | Per-dimension breakdown with raw signals |
+| `genome_compare` | Similarity between two Architecture Genomes |
+| `get_telemetry_insights` | Local, privacy-preserving usage insights |
+
+Every framework is scored on: Production Stability · Ecosystem Momentum · Migration Risk · Governance Readiness · Agent Compatibility.
+
+### Architecture Genome™
+
+Each recommendation carries a Genome — the architectural DNA of the decision, e.g. `MA-STAT-HOR-HIPAA-PY-MCP-REDIS+LGR+OTEL+CONT`. Genomes are searchable, comparable, and shareable, so teams with matching Genomes can reuse each other's ADRs. See [GENOME_TAXONOMY.md](./GENOME_TAXONOMY.md).
 
 ---
 
-## REST API
+## Framework coverage
 
-The REST API runs separately for direct HTTP access:
-
-```bash
-# Start the REST API
-uvicorn src.api.main:app --reload
-
-# Example: Stack recommendation
-curl -X POST http://localhost:8000/api/v1/recommend/stack \
-  -H "Content-Type: application/json" \
-  -d '{"problem": "HIPAA multi-agent patient platform", "compliance": ["hipaa"]}'
-
-# Example: Generate an ADR
-curl -X POST http://localhost:8000/api/v1/recommend/stack/adr \
-  -d '{"query": {"problem": "Multi-agent support platform"}, "adr_number": 1}'
-
-# Example: Compare two frameworks
-curl http://localhost:8000/api/v1/compare/langgraph/crewai
-
-# Swagger UI
-open http://localhost:8000/docs
-```
+**38 curated frameworks** across orchestration, vector DBs, observability, API, database, safety, protocol, and deployment — including LangGraph, CrewAI, AutoGen, PydanticAI, Google ADK, Qdrant, Pinecone, Weaviate, Chroma, Milvus, OpenAI SDK, Anthropic SDK, Ollama, FastAPI, Supabase, and the Vercel AI SDK.
 
 ---
 
-## Run Locally
+## Run from a checkout
 
 ```bash
-# 1. Clone and install
 git clone https://github.com/TrueArchAI/TrueArch.git
 cd TrueArch
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Run test suite
-pytest tests/ -v
-# Expected: 126 passed
-
-# 3a. Run the MCP server (stdio — for IDE integration)
-python -m src.mcp.server
-
-# 3b. Run the MCP server (HTTP — for testing the deployed mode)
-PORT=7860 python -m src.mcp.server --http
-# → http://localhost:7860/health
-# → http://localhost:7860/mcp  (MCP endpoint)
-
-# 4. Run the REST API
-uvicorn src.api.main:app --reload
-# → http://localhost:8000/docs
+pytest tests/            # 535 passing
+python -m src.mcp.server            # stdio (IDE integration)
+PORT=7860 python -m src.mcp.server --http   # HTTP: /health and /mcp
+uvicorn src.api.main:app --reload   # optional REST API at /docs
 ```
+
+To refresh the catalog: `python -m scripts.signal_pipeline.pipeline` then `python -m scripts.signal_pipeline.apply_patch` (see [Freshness](#freshness-is-a-feature-not-a-promise)).
 
 ---
 
-## Architecture Genome™
-
-Every recommendation includes a Genome — the architectural DNA of the decision:
-
-```
-MA  - STAT - HOR  - HIPAA - PY  - MCP  - REDIS + LGR + OTEL + CONT
-D1    D2     D3     D4      D5    D6     D7      D8    D9     D10
-│     │      │      │       │     │      │       │     │      │
-│     │      │      │       │     │      │       │     │      └─ Deployment
-│     │      │      │       │     │      │       │     └─ Observability
-│     │      │      │       │     │      │       └─ Orchestrator
-│     │      │      │       │     │      └─ Primary Store
-│     │      │      │       │     └─ Agent Protocol
-│     │      │      │       └─ Language
-│     │      │      └─ Compliance
-│     │      └─ Scaling Strategy
-│     └─ Memory Strategy
-└─ Architectural Pattern
-```
-
-Genomes are searchable, comparable, and shareable. Teams with matching Genomes can reuse each other's ADRs.
-
----
-
-## Framework Coverage
-
-28 curated frameworks across 8 categories:
-
-| Category | Examples |
-|---|---|
-| Orchestration | LangGraph, CrewAI, Google ADK, AutoGen, Pydantic AI, SmolAgents, DSPy |
-| Vector DB | Qdrant, Pinecone, Weaviate, Chroma, pgvector |
-| Observability | OpenTelemetry, LangSmith, Helicone, Arize AI |
-| API Layer | FastAPI |
-| Database | PostgreSQL, Redis, MongoDB, Supabase |
-| Safety | Guardrails AI, LlamaGuard |
-| Protocol | MCP SDK, Google A2A |
-| Deployment | Fly.io, Modal |
-
-All frameworks scored on: Production Stability · Ecosystem Momentum · Migration Risk · Governance Readiness · Agent Compatibility
-
----
-
-## Deploying Your Own Instance
-
-Hugging Face Spaces provides **100% free** Docker hosting specifically designed for AI projects, with no credit card required.
-
-```bash
-# 1. Create a new Space on Hugging Face (https://huggingface.co/spaces)
-#    Choose: Docker > Blank
-
-# 2. Add Hugging Face as a git remote
-git remote add hf https://huggingface.co/spaces/smhrizvi281/truearch-mcp
-
-# 3. Push the code
-git push hf main
-```
-
-The deployed server will be available at `https://smhrizvi281-truearch-mcp.hf.space/mcp`.
-
----
-
-## Core Documents
+## Core documents
 
 | Document | Purpose |
 |---|---|
-| [FOUNDATION.md](./FOUNDATION.md) | Vision, strategy, AI-readable context |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Technical architecture and API design |
-| [GENOME_TAXONOMY.md](./GENOME_TAXONOMY.md) | Architecture Genome™ dimension definitions |
-| [SCORING_FORMULA.md](./SCORING_FORMULA.md) | How TrueArch scores are calculated |
-| [ROADMAP.md](./ROADMAP.md) | Phase-by-phase product roadmap |
-| [mcp-configs/README.md](./mcp-configs/README.md) | MCP client setup guide |
+| [benchmark/evaluation_results.md](./benchmark/evaluation_results.md) | A/B evaluation + methodology & limitations |
+| [FOUNDATION.md](./FOUNDATION.md) | Vision and strategy |
+| [SCORING_FORMULA.md](./SCORING_FORMULA.md) | How scores are calculated |
+| [GENOME_TAXONOMY.md](./GENOME_TAXONOMY.md) | Architecture Genome™ dimensions |
+| [mcp-configs/README.md](./mcp-configs/README.md) | Per-client MCP setup |
 
 ---
 
-> *"Every AI coding agent should query TrueArch before generating production architecture."*
-
----
-
-*TrueArch — Decision Infrastructure for AI-Native Engineering*
+*TrueArch — real versions, real APIs, validated code. So your agent stops shipping 2023.*

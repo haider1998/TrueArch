@@ -103,6 +103,100 @@ known_issues:
     workaround: "Migrate to 0.4.x for continued development; accept 0.2.x freeze if codebase is stable"
     source: "https://github.com/microsoft/autogen"
 
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "AUT-001"
+    severity: "critical"
+    bad_pattern: 'from\s+autogen\s+import\s+.*\bAssistantAgent\b'
+    bad_example: |
+      from autogen import AssistantAgent, UserProxyAgent
+    correct_example: |
+      # v0.4+ (autogen-agentchat):
+      from autogen_agentchat.agents import AssistantAgent
+      from autogen_agentchat.teams import RoundRobinGroupChat
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      The `import autogen` / pyautogen 0.2 API was fully rewritten in v0.4. Agents
+      now live in autogen_agentchat.*; the old top-level imports are for the frozen
+      0.2 line (now autogen-agentchat 0.2 compat only).
+    docs_url: "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/migration-guide.html"
+
+  - id: "AUT-002"
+    severity: "high"
+    bad_pattern: '\bconfig_list_from_json\s*\('
+    bad_example: "config_list = config_list_from_json('OAI_CONFIG_LIST')"
+    correct_example: |
+      from autogen_ext.models.openai import OpenAIChatCompletionClient
+      model_client = OpenAIChatCompletionClient(model='gpt-4o')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      config_list_from_json and the llm_config dict pattern are 0.2-era. v0.4 uses
+      explicit model clients from autogen_ext.models.*.
+    docs_url: "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/migration-guide.html"
+
+  - id: "AUT-003"
+    severity: "high"
+    bad_pattern: '\binitiate_chat\s*\('
+    bad_example: "user_proxy.initiate_chat(assistant, message='Solve x')"
+    correct_example: |
+      # v0.4: run a team and stream results
+      await team.run_stream(task='Solve x')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      initiate_chat() is the 0.2 conversation entrypoint. v0.4 uses team.run() /
+      run_stream() on an async team object.
+    docs_url: "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/migration-guide.html"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "AUT-001"
+    severity: "critical"
+    bad_pattern: 'from\s+autogen\s+import\s+.*\bAssistantAgent\b'
+    bad_example: |
+      from autogen import AssistantAgent, UserProxyAgent
+    correct_example: |
+      # v0.4+ split into layered packages:
+      from autogen_agentchat.agents import AssistantAgent
+      from autogen_agentchat.teams import RoundRobinGroupChat
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      The flat `from autogen import ...` (v0.2 "pyautogen") API was replaced in v0.4
+      by the layered autogen-agentchat / autogen-core / autogen-ext packages. Note v0.2
+      lives on as the AG2 fork; for Microsoft AutoGen v0.4+, use autogen_agentchat.
+    docs_url: "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/migration-guide.html"
+
+  - id: "AUT-002"
+    severity: "high"
+    bad_pattern: '\bconfig_list_from_json\s*\('
+    bad_example: "config_list = config_list_from_json('OAI_CONFIG_LIST')"
+    correct_example: |
+      from autogen_ext.models.openai import OpenAIChatCompletionClient
+      model_client = OpenAIChatCompletionClient(model='gpt-4o')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      config_list_from_json and the OAI_CONFIG_LIST pattern are v0.2 idioms. v0.4
+      uses explicit model clients from autogen_ext.models.*.
+    docs_url: "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/migration-guide.html"
+
+  - id: "AUT-003"
+    severity: "medium"
+    bad_pattern: '\binitiate_chat\s*\('
+    bad_example: "user_proxy.initiate_chat(assistant, message='Solve x')"
+    correct_example: |
+      # v0.4 runs teams/agents via run() / run_stream():
+      result = await agent.run(task='Solve x')
+    version_deprecated: "0.4.0"
+    version_correct: ">=0.4.0"
+    description: >
+      initiate_chat() is the v0.2 conversation entrypoint. v0.4 agents and teams
+      expose async run()/run_stream() instead.
+    docs_url: "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/migration-guide.html"
+
 compatible_with:
   - framework: "opentelemetry"
     strength: 0.60

@@ -84,6 +84,10 @@ known_issues:
     resolved_in: null
     workaround: "Use memory.close()/drain_writes() in finally blocks; prefer external DB (PostgreSQL/SQLite) with unique threadId keys over built-in memory; reset_memories() between sessions"
     source: "https://docs.crewai.com/en/latest/concepts/memory"
+    category: "memory-management"
+    frequency: "high"
+    production_impact: "high"
+    first_reported: "2025-07-10"
 
   - id: "CREW-002"
     severity: "high"
@@ -93,6 +97,10 @@ known_issues:
     resolved_in: null
     workaround: "Run agents as independent subprocesses using message buses (Redis pub/sub); do not rely on shared-memory threading for high-scale production"
     source: "https://github.com/crewAIInc/crewAI"
+    category: "concurrency"
+    frequency: "high"
+    production_impact: "high"
+    first_reported: "2025-08-15"
 
   - id: "CREW-003"
     severity: "critical"
@@ -102,6 +110,10 @@ known_issues:
     resolved_in: null
     workaround: "Do NOT enable allow_code_execution=True unless strictly sandboxed; apply rigorous input sanitization; ensure fail-closed config if Docker is unreachable"
     source: "CVE database Q1 2026"
+    category: "security"
+    frequency: "medium"
+    production_impact: "critical"
+    first_reported: "2026-02-10"
 
   - id: "CREW-004"
     severity: "medium"
@@ -111,6 +123,55 @@ known_issues:
     resolved_in: null
     workaround: "Integrate LangFuse or AgentOps for observability; use CrewAI Flows for explicit state management and error recovery"
     source: "Community production reports 2026"
+    category: "observability"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2026-03-01"
+
+  - id: "CREW-005"
+    severity: "medium"
+    description: "Agent looping/hallucination on empty tool response — if a tool returns an empty string or error, the agent gets confused and repeats the tool call indefinitely in a loop."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Instruct tools to return structured errors or descriptive text instead of empty strings; implement max_iter limit for the agent."
+    source: "https://github.com/crewAIInc/crewAI"
+    category: "execution"
+    frequency: "high"
+    production_impact: "medium"
+    first_reported: "2026-01-15"
+
+  - id: "CREW-006"
+    severity: "medium"
+    description: "Dynamic prompt length truncation in token count calculation — when using rich contexts in agent tasks, CrewAI's token calculator can truncate prompts incorrectly or crash on unicode characters."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Manage context length manually using a custom LLM provider callback or preprocessing text; sanitize input data to remove problematic characters."
+    source: "https://github.com/crewAIInc/crewAI"
+    category: "token-management"
+    frequency: "low"
+    production_impact: "medium"
+    first_reported: "2026-03-01"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "CRW-V-001"
+    severity: "medium"
+    bad_pattern: 'from\s+crewai\s+import\s+.*\bProcess\b'
+    bad_example: |
+      from crewai import Agent, Task, Crew, Process
+      crew = Crew(process=Process.sequential)
+    correct_example: |
+      from crewai import Agent, Task, Crew
+      # process is now a string or omitted (defaults to sequential):
+      crew = Crew(agents=[...], tasks=[...], verbose=True)
+    version_deprecated: "0.28.0"
+    version_correct: ">=0.30.0"
+    description: >
+      The Process enum was renamed/restructured in CrewAI v0.28+. Check the current
+      CrewAI docs for the process parameter format.
+    docs_url: "https://docs.crewai.com/"
 
 compatible_with:
   - framework: "redis"

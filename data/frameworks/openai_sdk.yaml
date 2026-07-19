@@ -1,0 +1,219 @@
+schema_version: "1.0"
+
+# ─────────────────────────────────────────────
+# IDENTITY
+# ─────────────────────────────────────────────
+id: "openai_sdk"
+name: "OpenAI Python SDK"
+category: "llm_provider"
+subcategory: "cloud-llm-api"
+url: "https://github.com/openai/openai-python"
+docs_url: "https://platform.openai.com/docs/api-reference"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "1.35.0"
+latest_stable_released: "2026-05-10"
+
+genome_dimension:
+  key: "D1_llm_provider"
+  value: "OAI"
+
+# ─────────────────────────────────────────────
+# RAW SIGNALS
+# ─────────────────────────────────────────────
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1          # v1.x has been stable; minor patches only
+    issue_resolution_ratio: 0.80
+    open_security_advisories: 0
+    incident_rate: 0.05                  # OpenAI API outages are rare but notable
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 26000
+    star_growth_30d_pct: 3.2
+    commits_last_90d: 120
+    commits_prev_90d: 98
+    merged_prs_per_30d: 15
+    avg_days_to_merge: 4.0
+    job_postings_30d: 2800               # "OpenAI API" appears in enormous fraction of AI job postings
+    so_questions_30d: 950
+    so_questions_prev_30d: 820
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4               # Anthropic, Google Gemini, Mistral, local Ollama
+    public_api_methods: 40
+    migration_guide_count: 5
+    community_migrations: 30             # Many orgs run multi-provider wrappers
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 5
+    doc_completeness_rating: 92
+    hipaa_deployments: 15                # via BAA with Azure OpenAI
+    soc2_deployments: 25
+    gdpr_deployments: 8
+    other_compliance_deployments: 5
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 4           # stateless API; state managed externally
+    multiagent_support: "possible"       # via Assistants API threads
+    signals_date: "2026-05-16"
+
+# ─────────────────────────────────────────────
+# KNOWN ISSUES
+# ─────────────────────────────────────────────
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "OAI-001"
+    severity: "critical"
+    category: "api_change"
+    frequency: "very_common"
+    production_impact: "critical"
+    description: "openai.ChatCompletion.create() and openai.Completion.create() were REMOVED in v1.0.0. Code using v0.x module-level API will fail at import or runtime."
+    affected_versions: "<1.0.0"
+    resolved: true
+    resolved_in: "1.0.0"
+    workaround: "Replace with: from openai import OpenAI; client = OpenAI(); client.chat.completions.create(...)"
+    source: "https://github.com/openai/openai-python/discussions/742"
+    first_reported: "2023-11-06"
+
+  - id: "OAI-002"
+    severity: "high"
+    category: "rate_limiting"
+    frequency: "common"
+    production_impact: "high"
+    description: "Rate limit errors (429) are common at scale without exponential backoff. Default SDK does not retry on 429."
+    affected_versions: ">=1.0.0"
+    resolved: false
+    workaround: "Use the built-in retry: client = OpenAI(max_retries=5). For aggressive retry, use tenacity."
+    source: "https://platform.openai.com/docs/guides/rate-limits"
+    first_reported: "2024-01-15"
+
+  - id: "OAI-003"
+    severity: "high"
+    category: "cost"
+    frequency: "common"
+    production_impact: "high"
+    description: "Streaming responses are not counted in the response.usage token count by default in older SDK versions. Cost tracking may be inaccurate for streaming."
+    affected_versions: "<1.26.0"
+    resolved: true
+    resolved_in: "1.26.0"
+    workaround: "Upgrade to v1.26+. Use stream_options={\"include_usage\": true} to get usage in streaming."
+    source: "https://platform.openai.com/docs/api-reference/chat/streaming"
+    first_reported: "2024-03-10"
+
+  - id: "OAI-004"
+    severity: "medium"
+    category: "vendor_lock_in"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Direct OpenAI API dependency creates vendor lock-in. Provider outages (even brief) directly affect production availability."
+    affected_versions: ">=1.0.0"
+    resolved: false
+    workaround: "Use LiteLLM or an abstraction layer for multi-provider failover. Azure OpenAI provides SLA guarantees."
+    source: "curated"
+    first_reported: "2024-01-01"
+
+# ─────────────────────────────────────────────
+# COMPATIBILITY
+# ─────────────────────────────────────────────
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "OAI-V-001"
+    severity: "critical"
+    bad_pattern: '\bopenai\.ChatCompletion\.create\s*\('
+    bad_example: "response = openai.ChatCompletion.create(model='gpt-4', messages=[...])"
+    correct_example: |
+      from openai import OpenAI
+      client = OpenAI(api_key='xxx')
+      response = client.chat.completions.create(model='gpt-4o', messages=[...])
+    version_deprecated: "1.0.0"
+    version_correct: ">=1.0.0"
+    description: >
+      openai.ChatCompletion.create() (v0.x module-level API) was removed in v1.0.0.
+      The v1.x SDK uses a client instance: `from openai import OpenAI; client = OpenAI()`.
+    docs_url: "https://github.com/openai/openai-python/discussions/742"
+
+  - id: "OAI-V-002"
+    severity: "critical"
+    bad_pattern: '\bopenai\.Completion\.create\s*\('
+    bad_example: "response = openai.Completion.create(engine='text-davinci-003', prompt='...')"
+    correct_example: |
+      from openai import OpenAI
+      client = OpenAI()
+      response = client.chat.completions.create(
+          model='gpt-4o',
+          messages=[{'role': 'user', 'content': '...'}]
+      )
+    version_deprecated: "1.0.0"
+    version_correct: ">=1.0.0"
+    description: >
+      openai.Completion (text completion) is removed in v1.0 and the underlying
+      models are deprecated by OpenAI. Use chat completions with gpt-4o instead.
+    docs_url: "https://platform.openai.com/docs/guides/text-generation"
+
+  - id: "OAI-V-003"
+    severity: "high"
+    bad_pattern: '\bopenai\.api_key\s*='
+    bad_example: "openai.api_key = 'sk-...'  # module-level key setting"
+    correct_example: "client = OpenAI(api_key='sk-...')  # or use OPENAI_API_KEY env var"
+    version_deprecated: "1.0.0"
+    version_correct: ">=1.0.0"
+    description: >
+      Setting openai.api_key globally is the v0.x pattern. In v1.x, pass api_key to
+      the client constructor or set the OPENAI_API_KEY env var.
+    docs_url: "https://github.com/openai/openai-python/discussions/742"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.95
+    notes: "OpenAI models are the default LLM backend for most LangGraph agents."
+  - framework: "langchain"
+    strength: 0.95
+    notes: "langchain_openai is the most widely used LangChain integration."
+  - framework: "fastapi"
+    strength: 0.90
+    notes: "Async OpenAI client pairs naturally with FastAPI async endpoints."
+
+conflicts_with: []
+
+supersedes: []
+
+migrates_to:
+  - framework: "anthropic_sdk"
+    effort: 0.3
+    notes: "Anthropic Claude API has near-identical interface structure; migration is low effort."
+
+# ─────────────────────────────────────────────
+# CURATION
+# ─────────────────────────────────────────────
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://platform.openai.com/docs/api-reference"
+    - "https://github.com/openai/openai-python/releases"
+  notes: "The most widely used LLM provider SDK. v1.0 was a major breaking change from v0.x. The v1.x API has been stable since. Azure OpenAI provides HIPAA/SOC2 compliance paths."

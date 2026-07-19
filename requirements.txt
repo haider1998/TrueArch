@@ -6,3 +6,6 @@ mcp>=1.27.0,<2.0.0
 pytest>=9.0.0,<10.0.0
 httpx>=0.27.0,<1.0.0
 anyio>=4.0.0,<5.0.0
+packaging>=23.0
+# Tooling only (signal pipeline apply step); not needed to serve the MCP server:
+ruamel.yaml>=0.18,<0.20

@@ -84,6 +84,10 @@ known_issues:
     resolved_in: "1.10.0"
     workaround: null
     source: "https://github.com/qdrant/qdrant/issues/3241"
+    category: "sharding"
+    frequency: "low"
+    production_impact: "low"
+    first_reported: "2024-05-15"
 
   - id: "QDR-002"
     severity: "low"
@@ -93,6 +97,90 @@ known_issues:
     resolved_in: null
     workaround: "Set grpc.keepalive_time_ms=30000 in client config"
     source: "https://github.com/qdrant/qdrant/issues/2987"
+    category: "network"
+    frequency: "medium"
+    production_impact: "low"
+    first_reported: "2024-11-20"
+
+  - id: "QDR-003"
+    severity: "high"
+    description: "High memory usage with HNSW index build — building HNSW indexes on large collections can exceed available RAM, causing OOM kills on standard VPS nodes."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Configure mmap for HNSW in configuration file; lower max_indexing_threads to limit concurrency."
+    source: "https://github.com/qdrant/qdrant"
+    category: "resource-consumption"
+    frequency: "medium"
+    production_impact: "high"
+    first_reported: "2025-07-22"
+
+  - id: "QDR-004"
+    severity: "medium"
+    description: "Payload filtering index lag — when filtering on unindexed fields under high load, queries degrade to slow linear scans."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Explicitly create payload indexes for all fields used in filter queries before launching to production."
+    source: "https://github.com/qdrant/qdrant"
+    category: "performance"
+    frequency: "high"
+    production_impact: "medium"
+    first_reported: "2025-09-14"
+
+  - id: "QDR-005"
+    severity: "high"
+    description: "Slow recovery on large collections after node failure — recovery of replica shards after node restart can take several minutes to hours for collections with >100M vectors."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Adjust replica recovery configurations; optimize storage bandwidth (use fast SSDs/NVMe)."
+    source: "https://github.com/qdrant/qdrant"
+    category: "recovery"
+    frequency: "low"
+    production_impact: "high"
+    first_reported: "2025-11-30"
+
+  - id: "QDR-006"
+    severity: "medium"
+    description: "Incompatible payload formats in batch uploads — uploading nested lists in payloads can cause type coercion errors when index schemas are strictly defined."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Flatten payloads before upload; verify payloads conform to defined schemas using schema validation."
+    source: "https://github.com/qdrant/qdrant"
+    category: "data-ingestion"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2026-02-18"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "QDR-V-001"
+    severity: "high"
+    bad_pattern: 'QdrantClient\(.*collection_name\s*='
+    bad_example: "client = QdrantClient(url='...', collection_name='my-col')"
+    correct_example: |
+      client = QdrantClient(url='http://localhost:6333')
+      # Collection is specified per-operation:
+      client.search(collection_name='my-col', ...)
+    version_deprecated: "1.7.0"
+    version_correct: ">=1.7.0"
+    description: >
+      QdrantClient no longer accepts collection_name at constructor level (v1.7+).
+      Pass collection_name to each operation (search, upsert, etc.) instead.
+    docs_url: "https://python-client.qdrant.tech/"
+
+  - id: "QDR-V-002"
+    severity: "medium"
+    bad_pattern: 'from\s+qdrant_client\.http\.models\s+import\s+Distance'
+    bad_example: "from qdrant_client.http.models import Distance, VectorParams"
+    correct_example: "from qdrant_client.models import Distance, VectorParams"
+    version_deprecated: "1.9.0"
+    version_correct: ">=1.9.0"
+    description: >
+      qdrant_client.http.models is deprecated in v1.9+. Use qdrant_client.models directly.
+    docs_url: "https://python-client.qdrant.tech/"
 
 compatible_with:
   - framework: "langgraph"

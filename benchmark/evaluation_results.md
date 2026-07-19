@@ -1,46 +1,82 @@
 # TrueArch A/B Evaluation Results
 
-**Date:** 2026-05-24 15:04  
+**Date:** 2026-05-24 19:39  
 **Provider:** gemini (gemini-2.5-flash)  
-**Scenarios:** 10  
+**Scenarios:** 15  
 
 ## Executive Summary
 
+**Headline (objective, reproducible):** With TrueArch context, the model passed
+**30/30 deterministic fact-checks** versus **24/30** without it — i.e. it stopped
+recommending deprecated APIs (e.g. `pinecone.init()`), maintenance-mode frameworks
+(AutoGen), and wrong versions in the 6 cases where the bare model got them wrong.
+
 | Metric | Baseline (no TrueArch) | TrueArch-Augmented | Delta |
 |--------|----------------------|-------------------|-------|
-| **Quality Score** (avg/10) | 5.5 | 7.0 | **+26.0%** |
-| **Deterministic Checks** | 14/19 | 18/19 | +4 |
-| **Total Tokens** (all scenarios) | 21,164 | 28,862 | +7,698 |
-| **Output Tokens** (all scenarios) | 5,746 | 9,800 | +4,054 |
-| **TrueArch Context Overhead** | — | 8,579 tokens | — |
+| **Deterministic fact-checks** (objective) | 24/30 | **30/30** | **+6 / zero misses** |
+| **Judge quality score** (avg/10, subjective) | 6.2 | 7.2 | +16.5% |
+| **Total Tokens** (all scenarios) | 31,754 | 45,673 | +13,919 (+44%) |
+| **Output Tokens** (all scenarios) | 11,322 | 13,750 | +2,428 |
+| **TrueArch Context Overhead** | — | 9,431 tokens | — |
 
-> **Verdict:** ✅ TrueArch improved recommendation quality by **26.0%** with 36% more total tokens (context injection overhead).
+> **Verdict:** ✅ TrueArch eliminated all 6 factual misses (deprecated APIs, stale
+> versions, maintenance-mode recommendations) and lifted the subjective quality
+> score by 16.5%, at the cost of ~44% more total tokens (context-injection overhead).
+> The deterministic result is the load-bearing one; the quality delta is a
+> best-case, same-model-judged estimate — see limitations below.
+
+## Methodology & Limitations
+
+Read these before quoting any number from this report.
+
+- **Same-model judge.** Answers and judgements both come from `gemini-2.5-flash`.
+  A model rewards the specificity and recency it is itself fed, so the +16.5%
+  quality delta partly measures "did we paste in version numbers," not "was the
+  architecture wiser." Treat it as directional, not a benchmark score.
+- **Deterministic checks are the trustworthy signal.** The 30/30 vs 24/30 result
+  uses hand-written keyword assertions (`must_contain_any` / `must_not_contain`),
+  independent of the judge. But note these assertions encode TrueArch's own
+  ground truth — they verify the model repeated facts TrueArch supplied, which is
+  exactly the claim ("stops hallucinating known-bad APIs"), not an independent oracle.
+- **Small, single-run sample.** N=15 scenarios, one run, temperature 0, no variance
+  or confidence intervals. Per-scenario deltas swing widely (S08 +5.5, S13 −2.8);
+  the baseline wins 4 of 15. A ±16% mean off single samples is fragile.
+- **One provider.** Only Gemini 2.5 Flash was tested. Results may differ on other
+  models. A cross-model / second-judge run is a planned follow-up.
+- **Token cost is real.** TrueArch adds ~9.4k context tokens (+44% total). The
+  daily-loop tools (`quick_context`, `validate_code`) exist precisely to keep this
+  overhead small in practice; this benchmark injects fuller context than those tools.
 
 ## Per-Scenario Quality Scores
 
 | Scenario | Baseline Avg | TrueArch Avg | Δ | Winner |
 |----------|-------------|-------------|---|--------|
-| S01 | 4.7 | 6.0 | +1.3 | 🟢 TrueArch |
-| S02 | 4.0 | 5.0 | +1.0 | 🟢 TrueArch |
-| S03 | 8.0 | 7.0 | -1.0 | 🔴 Baseline |
-| S04 | 7.0 | 6.2 | -0.8 | 🔴 Baseline |
-| S05 | 6.0 | 9.2 | +3.2 | 🟢 TrueArch |
-| S06 | 2.8 | 8.5 | +5.7 | 🟢 TrueArch |
-| S07 | 7.7 | 7.3 | -0.3 | 🟡 Tie |
-| S08 | 2.0 | 7.8 | +5.8 | 🟢 TrueArch |
-| S09 | 3.2 | 5.5 | +2.3 | 🟢 TrueArch |
-| S10 | 9.8 | 7.0 | -2.8 | 🔴 Baseline |
+| S01 | 4.7 | 8.7 | +4.0 | 🟢 TrueArch |
+| S02 | 4.0 | 4.7 | +0.7 | 🟢 TrueArch |
+| S03 | 8.0 | 6.7 | -1.3 | 🔴 Baseline |
+| S04 | 7.2 | 8.0 | +0.8 | 🟢 TrueArch |
+| S05 | 6.0 | 9.5 | +3.5 | 🟢 TrueArch |
+| S06 | 2.8 | 6.5 | +3.7 | 🟢 TrueArch |
+| S07 | 7.7 | 7.7 | +0.0 | 🟡 Tie |
+| S08 | 2.0 | 7.5 | +5.5 | 🟢 TrueArch |
+| S09 | 3.2 | 7.0 | +3.8 | 🟢 TrueArch |
+| S10 | 9.8 | 8.3 | -1.5 | 🔴 Baseline |
+| S11 | 7.3 | 7.5 | +0.2 | 🟡 Tie |
+| S12 | 6.8 | 5.8 | -1.0 | 🔴 Baseline |
+| S13 | 7.8 | 5.0 | -2.8 | 🔴 Baseline |
+| S14 | 8.0 | 7.5 | -0.5 | 🟡 Tie |
+| S15 | 7.3 | 7.7 | +0.3 | 🟡 Tie |
 
 ## Per-Dimension Breakdown (averaged across all scenarios)
 
 | Dimension | Baseline | TrueArch | Δ |
 |-----------|----------|----------|---|
-| correctness | 5.8 | 7.6 | +1.8 |
-| specificity | 5.1 | 7.7 | +2.6 |
-| recency | 6.4 | 8.4 | +2.0 |
-| known_issues | 2.9 | 4.3 | +1.4 |
-| actionability | 4.6 | 7.6 | +3.0 |
-| hallucination_free | 8.3 | 6.1 | -2.2 |
+| correctness | 6.5 | 6.6 | +0.1 |
+| specificity | 6.2 | 8.1 | +1.9 |
+| recency | 7.3 | 9.1 | +1.7 |
+| known_issues | 3.6 | 4.2 | +0.6 |
+| actionability | 4.7 | 6.6 | +1.9 |
+| hallucination_free | 8.7 | 8.6 | -0.1 |
 
 ## Deterministic Fact Checks
 
@@ -60,26 +96,42 @@
 | S07 | production_vector_db | ✅ | ✅ | Must recommend a production-grade vector DB |
 | S07 | no_chroma_solo | ✅ | ✅ | Chroma is prototype-only for 50M+ vectors |
 | S08 | knows_maintenance_mode | ❌ | ✅ | CRITICAL: Must know AutoGen is in maintenance mode |
-| S08 | suggests_alternatives | ❌ | ❌ | Must suggest modern alternatives |
+| S08 | suggests_alternatives | ❌ | ✅ | Must suggest modern alternatives |
 | S09 | mentions_mcp | ❌ | ✅ | Query explicitly asks about MCP — must address it |
 | S09 | mentions_memory | ✅ | ✅ | Query asks about persistent memory |
 | S10 | chroma_limitation | ✅ | ✅ | Must note Chroma's production limitations |
 | S10 | correct_pinecone_api | ✅ | ✅ | Must NOT use deprecated Pinecone v2 API (pinecone.init) |
+| S11 | no_deprecated_pinecone_init | ✅ | ✅ | CRITICAL: pinecone.init() was removed in v3. |
+| S11 | correct_pinecone_import | ✅ | ✅ | Must use Pinecone class constructor (v3+ API). |
+| S11 | no_deprecated_langchain_import | ✅ | ✅ | LangChain embeddings moved to provider packages in v0.2. |
+| S12 | typescript_native_tools | ✅ | ✅ | TypeScript Next.js stack requires TypeScript-native AI tools. |
+| S12 | mentions_streaming | ✅ | ✅ | Query requires streaming — must address it. |
+| S13 | mentions_observability_tool | ❌ | ✅ | Must recommend a specific observability tool. |
+| S13 | mentions_tracing | ✅ | ✅ | Observability query must address tracing/monitoring. |
+| S14 | warns_about_v4_breaking_change | ✅ | ✅ | CRITICAL: Weaviate v4 client is a complete breaking rewrite. |
+| S14 | provides_new_api_pattern | ✅ | ✅ | Must provide the new v4 API patterns. |
+| S15 | cost_appropriate_stack | ✅ | ✅ | Solo $50/month budget requires cost-optimized tools. |
+| S15 | no_expensive_enterprise_stack | ✅ | ✅ | Enterprise managed services not appropriate for $50/month budget. |
 
 ## Token Usage Detail
 
 | Scenario | A: Input | A: Output | A: Total | B: Input | B: Output | B: Total | TrueArch Ctx |
 |----------|---------|----------|---------|---------|----------|---------|-------------|
-| S01 | 75 | 80 | 2,119 | 1,169 | 1,304 | 3,213 | 912 |
-| S02 | 71 | 678 | 2,115 | 1,173 | 757 | 2,810 | 871 |
-| S03 | 76 | 719 | 2,120 | 1,093 | 794 | 3,137 | 788 |
-| S04 | 68 | 845 | 2,112 | 1,078 | 1,745 | 3,122 | 793 |
-| S05 | 69 | 627 | 2,113 | 1,498 | 908 | 2,770 | 1,307 |
-| S06 | 70 | 80 | 2,114 | 654 | 1,136 | 2,698 | 434 |
-| S07 | 73 | 559 | 2,117 | 1,089 | 848 | 2,197 | 788 |
-| S08 | 71 | 802 | 2,115 | 1,349 | 387 | 2,347 | 933 |
-| S09 | 76 | 81 | 2,120 | 1,088 | 950 | 3,134 | 795 |
-| S10 | 75 | 1,275 | 2,119 | 1,390 | 971 | 3,434 | 958 |
+| S01 | 75 | 80 | 2,119 | 1,322 | 979 | 3,366 | 688 |
+| S02 | 71 | 678 | 2,115 | 1,266 | 678 | 3,310 | 707 |
+| S03 | 76 | 719 | 2,120 | 1,192 | 798 | 3,236 | 535 |
+| S04 | 68 | 1,110 | 2,112 | 1,272 | 987 | 3,316 | 617 |
+| S05 | 69 | 627 | 2,113 | 1,404 | 631 | 2,698 | 874 |
+| S06 | 70 | 80 | 2,114 | 987 | 995 | 3,031 | 422 |
+| S07 | 73 | 559 | 2,117 | 1,279 | 929 | 2,568 | 610 |
+| S08 | 71 | 802 | 2,115 | 2,042 | 403 | 2,895 | 1,202 |
+| S09 | 76 | 81 | 2,120 | 1,241 | 1,310 | 3,285 | 616 |
+| S10 | 75 | 1,275 | 2,119 | 1,516 | 1,136 | 3,560 | 838 |
+| S11 | 80 | 1,413 | 2,112 | 539 | 1,204 | 2,583 | 84 |
+| S12 | 75 | 967 | 2,119 | 1,279 | 1,043 | 3,275 | 616 |
+| S13 | 75 | 806 | 2,119 | 1,276 | 1,199 | 3,320 | 615 |
+| S14 | 71 | 1,736 | 2,115 | 950 | 388 | 2,263 | 399 |
+| S15 | 81 | 389 | 2,125 | 1,289 | 1,070 | 2,967 | 608 |
 
 ## Sample Raw Responses (first 3 scenarios)
 
@@ -99,36 +151,42 @@ Building a HIPAA-compliant multi-agent healthcare assistant requires a robust, s
 
 #### Arm B (TrueArch-Augmented)
 ```
-For your HIPAA-compliant multi-agent healthcare assistant, you must use the following technology stack:
+For building a HIPAA-compliant multi-agent healthcare assistant, we recommend a robust and production-ready stack designed for high reliability and data governance. This stack leverages established frameworks known for their performance and security in regulated environments.
 
-### Recommended Technology Stack
+Here is the recommended technology stack:
 
-1.  **Orchestration: LangGraph (v1.2.0)**
-    *   **Reasoning:** Provides native multi-agent and Message Passing Interface (MCP) support, crucial for complex agent interactions. It has verified HIPAA deployments and a strong governance posture.
-    *   **Installation:**
-        ```bash
-        pip install langgraph==1.2.0
-        ```
-    *   **Example (Basic Graph Definition):**
-        ```python
-        from langgraph.graph import StateGraph, END
+### 1. Orchestration: LangGraph
 
-        class AgentState:
-            messages: list
+For orchestrating your multi-agent system, **LangGraph** is the top recommendation. It offers native support for multi-agent workflows and multi-party computation, which is crucial for complex healthcare assistant interactions. LangGraph has demonstrated strong production reliability and has been verified in HIPAA-compliant deployments.
 
-        graph_builder = StateGraph(AgentState)
-        graph_builder.add_node("agent", lambda state: {"messages": state["messages"] + ["Agent processed"]})
-        graph_builder.add_node("tool", lambda state: {"messages": state["messages"] + ["Tool executed"]})
-        graph_builder.add_edge("agent", "tool")
-        graph_builder.add_edge("tool", END)
-        graph_builder.set_entry_point("agent")
-        graph = graph_builder.compile()
-        ```
+*   **Recommended Version:** `1.2.0`
+*   **Installation:**
+    ```bash
+    pip install langgraph==1.2.0
+    ```
+*   **Example (Conceptual Graph Definition):**
+    ```python
+    from langgraph.graph import StateGraph, END
 
-2.  **Vector Database: PostgreSQL + pgvector (pgvector v0.8.2)**
-    *   **Reasoning:** Offers production-grade reliability and is explicitly verified for HIPAA deployments with a strong governance posture. Leveraging an existing robust relational database for vector capabilities is highly efficient.
-    *   **Installation:**
-        *   **PostgreSQL:** Install PostgreSQL server (e.g., `sudo apt-g...
+    class AgentState:
+        # Define your agent's state here
+
+    workflow = StateGraph(AgentState)
+
+    # Define nodes (agents or tools)
+    workflow.add_node("agent_a", your_agent_a_function)
+    workflow.add_node("agent_b", your_agent_b_function)
+
+    # Define edges (transitions)
+    workflow.add_edge("agent_a", "agent_b")
+    workflow.add_edge("agent_b", END)
+
+    app = workflow.compile()
+    ```
+
+### 2. Vector Database: PostgreSQL with pgvector
+
+For storing and querying vector embeddings, **PostgreSQL with the pgvector extension** is highly recommended. This combination ...
 ```
 
 ### S02: Should I use LangGraph or CrewAI for my AI agent orchestration layer in 2026?...
@@ -151,28 +209,16 @@ While CrewAI offers a compelling high-level abstraction for defining teams of ag
 
 #### Arm B (TrueArch-Augmented)
 ```
-For your AI agent orchestration layer in 2026, **TrueArch decisively recommends LangGraph.**
+For your AI agent orchestration layer in 2026, **LangGraph is the decisively recommended choice over CrewAI.**
 
-LangGraph significantly outperforms CrewAI across critical dimensions, making it the superior choice for production environments.
+LangGraph demonstrates superior architectural fitness for long-term production use, particularly for complex AI agent systems.
 
-**Key Reasons for LangGraph:**
+Here's why LangGraph is the stronger choice:
 
-1.  **Agent Compatibility (Native Multi-Agent):** LangGraph leads by a substantial 36.2 points in Agent Compatibility, offering native support for true multi-agent orchestration. This is crucial for building sophisticated AI agent systems.
-2.  **Production Stability:** With fewer breaking changes (2 per 90 days vs. CrewAI's 4) and a 17.2-point lead, LangGraph offers greater stability for your production deployments.
-3.  **Governance Readiness:** LangGraph provides better audit support (plugin) and a 16.3-point lead, which is essential for compliance requirements like HIPAA, SOC 2, and GDPR.
-4.  **Ecosystem Momentum:** LangGraph shows stronger growth (+4.5%/mo stars vs. +1.8%/mo for CrewAI), indicating a more vibrant and evolving ecosystem.
-5.  **Migration Risk:** LangGraph scores higher, meaning it's easier to migrate away from if future needs change, offering better long-term flexibility.
-
-**When to use LangGraph:**
-*   Your system requires **true multi-agent orchestration**.
-*   You need high concurrency or streaming responses.
-*   Compliance (HIPAA, SOC 2, GDPR) and audit trails are critical.
-
-**Installation:**
-To get started with LangGraph, ensure you have Python 3.9+ and install it via pip:
-
-```bash
-pip install -U lang...
+1.  **Production Stability:** LangGraph exhibits greater stability, with an estimated 2 breaking changes per 90 days compared to CrewAI's estimated 4. This indicates a more predictable and robust development trajectory, crucial for a system intended for 2026 and beyond.
+2.  **Ecosystem Momentum:** While CrewAI currently has a larger GitHub star count (51,500), LangGraph shows significantly stronger ecosystem momentum, growing at an estimated 4.5% per month compared to CrewAI's 1.8%. This rapid growth suggests a more vibrant and actively developing community, which is vital for future support, integrations, and innovation.
+3.  **Native Multi-Agent Orchestration:** LangGraph offers excellent agent compatibility, featuring native support for true multi-agent orchestration. This is a significant advantage over CrewAI, where multi-agent capabilities primarily rely on community plugins. If your system requires sophisticated agent interactions, LangGraph's built-in capabilities will provide a more robust foundation.
+4.  **Governance Readiness:** LangGraph leads in governance readiness, providing plugin support for audit trails. This is essential for meeting enterprise compliance requirements such as SO...
 ```
 
 ### S03: I need to set up a RAG pipeline for enterprise document search over 10M+ documen...
@@ -216,40 +262,28 @@ This combination offers excellent retrieval quality, scalability, and developer 
 
 #### Arm B (TrueArch-Augmented)
 ```
-For an enterprise document search RAG pipeline over 10M+ documents, I recommend the following production-ready stack:
+For an enterprise RAG pipeline handling over 10 million documents, we recommend a robust and scalable stack comprising **Haystack** for orchestration, **Qdrant** as the vector database, **OpenTelemetry** for observability, **FastAPI** for the API layer, and **MongoDB** for metadata and user data. This combination is designed for high performance and production reliability.
 
-### Recommended AI Stack
+Here's a breakdown of the recommended components:
 
-1.  **Orchestration (RAG Flow): LangGraph `1.2.0`**
-    *   **Reason:** LangGraph provides robust capabilities for building complex, multi-step RAG workflows, including multi-agent patterns, which are crucial for sophisticated enterprise search. Its strong overall score and native multi-agent support make it ideal for orchestrating retrieval, re-ranking, and generation steps.
-    *   **Installation:**
-        ```bash
-        pip install langgraph==1.2.0 langchain==0.2.11 langchain-core==0.2.20
-        ```
-    *   **Example (Basic Node):**
-        ```python
-        from langgraph.graph import StateGraph, END
+### 1. Orchestration: Haystack
 
-        class AgentState:
-            query: str
-            documents: list = []
-            answer: str = ""
+Haystack is highly recommended for building complex RAG pipelines. It is battle-tested in production environments and offers excellent capabilities for document retrieval and generation.
 
-        def retrieve(state: AgentState):
-            print("Retrieving documents...")
-            # Placeholder for actual retrieval logic using Qdrant
-            return {"documents": ["doc1_content", "doc2_content"]}
+*   **Version:** 2.3.1
+*   **Justification:** Haystack provides a flexible framework for connecting various components of your RAG system, from document loaders and preprocessors to retrievers and large language models. Its modular design is well-suited for enterprise-scale applications.
+*   **Installation:**
+    ```bash
+    pip install haystack-ai==2.3.1
+    ```
 
-        def generate(state: AgentState):
-            print("Generating answer...")
-            # Placeholder for LLM call
-            return {"answer": f"Answer based on: {state.documents[0]}"}
+### 2. Vector Database: Qdrant
 
-        workflow = StateGraph(AgentState)
-        workflow.add_node("retrieve", retrieve)
-        workflow.add_node("generate", generate)
-        workflow.set_entry_point("retrieve")
-        workflow.add_edge("re...
+For managing and querying vector embeddings of your 10M+ documents, Qdrant stands out for its production-grade reliability and exceptional performance.
+
+*   **Version:** 1.18.0
+*   **Justification:** Qdrant is engineered for high-throughput, low-latency vector search, which is critical for a large-scale document search application. It offers advanced filtering capabilities and horizontal scalability to handle your extensive document collection.
+*   ...
 ```
 
 ## Evaluation Metadata
@@ -258,8 +292,8 @@ For an enterprise document search RAG pipeline over 10M+ documents, I recommend 
 |------|-------|
 | Provider | gemini |
 | Model | gemini-2.5-flash |
-| Scenarios | 10 |
-| Total LLM calls | 40 (2 arms + 2 judge calls per scenario) |
-| Judge tokens used | 48,202 |
-| Total evaluation tokens | 98,228 |
-| Generated | 2026-05-24 15:04 |
+| Scenarios | 15 |
+| Total LLM calls | 60 (2 arms + 2 judge calls per scenario) |
+| Judge tokens used | 71,698 |
+| Total evaluation tokens | 149,125 |
+| Generated | 2026-05-24 19:39 |

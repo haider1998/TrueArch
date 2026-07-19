@@ -1,0 +1,195 @@
+schema_version: "1.0"
+
+id: "anthropic_sdk"
+name: "Anthropic Python SDK (Claude)"
+category: "llm_provider"
+subcategory: "cloud-llm-api"
+url: "https://github.com/anthropic/anthropic-sdk-python"
+docs_url: "https://docs.anthropic.com/en/api"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "0.30.0"
+latest_stable_released: "2026-05-08"
+
+genome_dimension:
+  key: "D1_llm_provider"
+  value: "ANT"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.82
+    open_security_advisories: 0
+    incident_rate: 0.04
+    incident_rate_source: "curated"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 7200
+    star_growth_30d_pct: 4.8             # Claude 3.5 Sonnet drove significant growth
+    commits_last_90d: 85
+    commits_prev_90d: 72
+    merged_prs_per_30d: 12
+    avg_days_to_merge: 3.5
+    job_postings_30d: 620
+    so_questions_30d: 310
+    so_questions_prev_30d: 248
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 4
+    public_api_methods: 35
+    migration_guide_count: 3
+    community_migrations: 15
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 6
+    doc_completeness_rating: 88
+    hipaa_deployments: 8
+    soc2_deployments: 14
+    gdpr_deployments: 5
+    other_compliance_deployments: 2
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "native"                # Anthropic created MCP; native tool_use API
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 4
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "ANT-001"
+    severity: "high"
+    category: "context_window"
+    frequency: "common"
+    production_impact: "high"
+    description: "Claude models have a 200K context window but input costs scale linearly. Sending large contexts frequently leads to unexpected cost spikes."
+    affected_versions: ">=0.20.0"
+    resolved: false
+    workaround: "Use context caching (prompt caching) for repeated prefixes. Monitor token usage with usage.input_tokens in responses."
+    source: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching"
+    first_reported: "2024-06-01"
+
+  - id: "ANT-002"
+    severity: "medium"
+    category: "api_change"
+    frequency: "uncommon"
+    production_impact: "medium"
+    description: "The messages API replaced the older text_completions API. Code using the legacy completion style will fail."
+    affected_versions: "<0.18.0"
+    resolved: true
+    resolved_in: "0.18.0"
+    workaround: "Use client.messages.create() with the messages list format."
+    source: "https://docs.anthropic.com/en/api/messages"
+    first_reported: "2023-09-01"
+
+  - id: "ANT-003"
+    severity: "medium"
+    category: "tooling"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Tool use (function calling) requires strict JSON schema for tool definitions. Malformed schemas fail silently or cause unexpected model behavior."
+    affected_versions: ">=0.20.0"
+    resolved: false
+    workaround: "Validate tool schemas with jsonschema before sending. Use Pydantic models to generate schemas automatically."
+    source: "https://docs.anthropic.com/en/docs/tool-use"
+    first_reported: "2024-04-01"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "ANT-001"
+    severity: "critical"
+    bad_pattern: '\bclient\.completions\.create\s*\('
+    bad_example: |
+      client.completions.create(model='claude-2', prompt='Human: hi\n\nAssistant:')
+    correct_example: |
+      client.messages.create(
+          model='claude-sonnet-5',
+          max_tokens=1024,
+          messages=[{'role': 'user', 'content': 'hi'}],
+      )
+    version_deprecated: "0.20.0"
+    version_correct: ">=0.20.0"
+    description: >
+      The legacy text-completions API (client.completions.create with the
+      Human:/Assistant: prompt format) is deprecated. Use the Messages API
+      (client.messages.create) with a structured messages list.
+    docs_url: "https://docs.anthropic.com/en/api/messages"
+
+  - id: "ANT-002"
+    severity: "high"
+    bad_pattern: 'from\s+anthropic\s+import\s+.*\bHUMAN_PROMPT\b'
+    bad_example: "from anthropic import HUMAN_PROMPT, AI_PROMPT"
+    correct_example: |
+      from anthropic import Anthropic
+      client = Anthropic()
+      # Roles are structured now — no HUMAN_PROMPT/AI_PROMPT sentinels.
+    version_deprecated: "0.20.0"
+    version_correct: ">=0.20.0"
+    description: >
+      HUMAN_PROMPT / AI_PROMPT belong to the old completions prompt format and
+      are not used by the Messages API. Use structured message roles instead.
+    docs_url: "https://docs.anthropic.com/en/api/messages"
+
+  - id: "ANT-003"
+    severity: "medium"
+    bad_pattern: '\bclient\.count_tokens\s*\('
+    bad_example: "n = client.count_tokens('some text')"
+    correct_example: |
+      # Use the dedicated token-counting endpoint:
+      client.messages.count_tokens(
+          model='claude-sonnet-5',
+          messages=[{'role': 'user', 'content': 'some text'}],
+      )
+    version_deprecated: "0.39.0"
+    version_correct: ">=0.39.0"
+    description: >
+      The top-level client.count_tokens() helper was removed. Use
+      client.messages.count_tokens() with the model and messages.
+    docs_url: "https://docs.anthropic.com/en/docs/build-with-claude/token-counting"
+
+compatible_with:
+  - framework: "langgraph"
+    strength: 0.92
+    notes: "langchain_anthropic provides first-class LangGraph integration."
+  - framework: "fastapi"
+    strength: 0.88
+    notes: "Async Anthropic client works well with FastAPI."
+  - framework: "mcp_sdk_python"
+    strength: 0.98
+    notes: "Anthropic created MCP; Claude models have native tool_use which maps directly to MCP tools."
+
+conflicts_with: []
+supersedes: []
+migrates_to:
+  - framework: "openai_sdk"
+    effort: 0.3
+    notes: "Very similar interface; migration is mainly model name and import changes."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://docs.anthropic.com/en/api"
+    - "https://github.com/anthropic/anthropic-sdk-python/releases"
+  notes: "Anthropic SDK is the only major provider with native MCP support (Anthropic invented MCP). Claude 3.5 Sonnet and Claude 3.7 Sonnet are top performers on coding benchmarks. Prompt caching is a key cost optimization feature unique to Anthropic."

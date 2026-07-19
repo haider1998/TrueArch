@@ -1,7 +1,11 @@
 # TrueArch MCP — Client Configuration Guide
 
-> Connect any MCP-compatible AI coding assistant to TrueArch's centralized architecture intelligence.  
-> **Live endpoint:** `https://smhrizvi281-truearch-mcp.hf.space/mcp`
+> Connect any MCP-compatible AI coding assistant to TrueArch — the hallucination killer for AI coding agents.
+
+Two ways to connect:
+
+- **Hosted (zero install):** point your client at `https://smhrizvi281-truearch-mcp.hf.space/mcp` (see per-client blocks below).
+- **Local (`uvx`, no clone):** `command: "uvx"`, `args: ["truearch-mcp"]`. In Claude Code: `claude mcp add truearch -- uvx truearch-mcp`.
 
 ---
 
@@ -9,11 +13,13 @@
 
 | Tool | What It Does |
 |---|---|
+| `validate_code` | **Catch deprecated/hallucinated APIs** in generated code, with the exact fix |
+| `latest_stable_versions` | Real pinned versions for lockfiles + honest staleness warnings |
+| `quick_context` | Token-budgeted, intent-aware architecture brief |
 | `recommend_ai_stack` | Full stack recommendation with Genome + ADR |
 | `compare_frameworks` | Head-to-head across 5 scoring dimensions |
 | `get_framework_score` | TrueArch score for a single framework |
 | `get_recommendation` | Top frameworks in a category |
-| `latest_stable_versions` | Pinned, verified versions for lockfiles |
 | `architecture_tradeoffs` | Known issues, compatibility, migration paths |
 
 ---

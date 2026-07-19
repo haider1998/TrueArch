@@ -70,6 +70,7 @@ def test_list_frameworks_genome_filter(client):
     known_orchestrator_codes = {
         "LGR", "AUTOG", "CREW", "SWARM", "SEMK", "PADK",
         "ADK", "PYDAI", "LANG", "LLMIND", "SMOL", "DSPY",
+        "SK", "HAY", "MST",  # Tier 2 additions
     }
     for fw in data:
         assert fw["genome_dimension"] in known_orchestrator_codes

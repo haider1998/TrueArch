@@ -75,7 +75,128 @@ computed_scores:
   last_computed: null
   valid_until: null
 
-known_issues: []
+known_issues:
+  - id: "PNC-001"
+    severity: "high"
+    description: "Index scaling latency during dimension updates — changing vector dimension size requires creating a new index and re-indexing all vectors, as dimensions cannot be updated in-place."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Pre-plan vector dimensions based on the embedding model; use a dual-index strategy during migrations."
+    source: "https://docs.pinecone.io/docs/indexes"
+    category: "index-management"
+    frequency: "low"
+    production_impact: "high"
+    first_reported: "2025-06-12"
+
+  - id: "PNC-002"
+    severity: "medium"
+    description: "Metadata size limitations — metadata payloads per vector are limited to 40KB, which can cause insertion failures if storing raw documents alongside vectors."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Store large documents/chunks in an external database (e.g. MongoDB/Postgres) and only store reference IDs in Pinecone metadata."
+    source: "https://docs.pinecone.io/docs/metadata-filtering"
+    category: "data-limits"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2025-08-19"
+
+  - id: "PNC-003"
+    severity: "medium"
+    description: "Namespaces isolation for multi-tenant isolation — namespaces provide logical separation but share index resource limits; a spike in queries in one namespace can throttle others."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "For strict resource isolation, deploy separate Pinecone indexes or projects rather than namespaces."
+    source: "https://docs.pinecone.io/docs/namespaces"
+    category: "multi-tenancy"
+    frequency: "medium"
+    production_impact: "medium"
+    first_reported: "2025-10-05"
+
+  - id: "PNC-004"
+    severity: "low"
+    description: "Pod-based index latency spike on initial query — Serverless indexes do not have this, but legacy pod-based indexes experience cold-start latency when inactive."
+    affected_versions: "Pod-based indexes"
+    resolved: false
+    resolved_in: null
+    workaround: "Use the newer Serverless architecture for variable workloads, or set up a keep-alive ping script for pod-based indexes."
+    source: "https://docs.pinecone.io/docs/choosing-index-type"
+    category: "performance"
+    frequency: "low"
+    production_impact: "low"
+    first_reported: "2025-12-01"
+
+  - id: "PNC-005"
+    severity: "low"
+    description: "Pinecone API rate limits on free/starter tiers — starter tier has strict rate limits on write operations, causing failures under heavy bulk uploads."
+    affected_versions: "starter tier"
+    resolved: false
+    resolved_in: null
+    workaround: "Implement exponential backoff in client code or batch inserts into chunks of 100-250 vectors."
+    source: "https://docs.pinecone.io/docs/limits"
+    category: "rate-limiting"
+    frequency: "high"
+    production_impact: "low"
+    first_reported: "2026-01-20"
+
+  - id: "PNC-006"
+    severity: "medium"
+    description: "Lack of local/offline mode for development — Pinecone does not provide a local Docker container or emulator, making offline development and unit testing difficult."
+    affected_versions: "all"
+    resolved: false
+    resolved_in: null
+    workaround: "Mock Pinecone client in tests or use a lightweight local vector store (e.g., Chroma or Sqlite-based) for local dev environments."
+    source: "https://docs.pinecone.io/docs/quickstart"
+    category: "developer-experience"
+    frequency: "high"
+    production_impact: "low"
+    first_reported: "2026-02-15"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "PCN-001"
+    severity: "critical"
+    bad_pattern: '\bpinecone\.init\s*\('
+    bad_example: |
+      import pinecone
+      pinecone.init(api_key='xxx', environment='us-east1-gcp')
+    correct_example: |
+      from pinecone import Pinecone
+      pc = Pinecone(api_key='xxx')
+    version_deprecated: "3.0.0"
+    version_correct: ">=5.0.0"
+    description: >
+      pinecone.init() was removed in Pinecone v3. Use the Pinecone() class
+      constructor instead. The 'environment' parameter no longer exists in v5.
+    docs_url: "https://docs.pinecone.io/guides/getting-started/migration-guide"
+
+  - id: "PCN-002"
+    severity: "critical"
+    bad_pattern: '\bimport\s+pinecone\s*$'
+    bad_example: "import pinecone"
+    correct_example: "from pinecone import Pinecone, ServerlessSpec"
+    version_deprecated: "3.0.0"
+    version_correct: ">=3.0.0"
+    description: >
+      The bare `import pinecone` module pattern is the v2 API style. v3+ uses
+      class-based imports: `from pinecone import Pinecone`.
+    docs_url: "https://docs.pinecone.io/guides/getting-started/migration-guide"
+
+  - id: "PCN-003"
+    severity: "high"
+    bad_pattern: 'pinecone\.create_index\s*\('
+    bad_example: "pinecone.create_index('my-index', dimension=1536)"
+    correct_example: |
+      pc = Pinecone(api_key='xxx')
+      pc.create_index('my-index', dimension=1536, spec=ServerlessSpec(cloud='aws', region='us-east-1'))
+    version_deprecated: "3.0.0"
+    version_correct: ">=5.0.0"
+    description: >
+      pinecone.create_index() (module-level) was removed in v3. Use
+      pc.create_index() where pc = Pinecone(). v5 requires a ServerlessSpec or PodSpec.
+    docs_url: "https://docs.pinecone.io/reference/api/2024-07/control-plane/create_index"
 
 compatible_with:
   - framework: "langchain"

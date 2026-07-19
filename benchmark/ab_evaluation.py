@@ -249,6 +249,107 @@ SCENARIOS: List[Scenario] = [
             {"name": "correct_pinecone_api", "type": "must_not_contain", "keywords": ["pinecone.init(", "pinecone.init ("], "reason": "Must NOT use deprecated Pinecone v2 API (pinecone.init)"},
         ],
     ),
+    Scenario(
+        id="S11",
+        prompt=(
+            "Write me Python code to connect to Pinecone and create an index for my RAG system. "
+            "Then show me how to use it with LangChain."
+        ),
+        truearch_calls=[
+            {"tool": "get_code_patterns", "kwargs": {"framework_id": "pinecone", "use_case": "vector_store"}},
+            {"tool": "get_code_patterns", "kwargs": {"framework_id": "langchain", "use_case": "vector_store"}},
+        ],
+        mcp_kwargs={},
+        ground_truth=(
+            "Code MUST use `from pinecone import Pinecone` (v5+ SDK). "
+            "Must NOT use `pinecone.init()` (removed in v3). "
+            "LangChain code must use `from langchain_openai import OpenAIEmbeddings` NOT `from langchain.embeddings`. "
+            "Index creation must include ServerlessSpec or PodSpec. "
+            "Tests whether TrueArch code patterns prevent API hallucination."
+        ),
+        deterministic_checks=[
+            {"name": "no_deprecated_pinecone_init", "type": "must_not_contain", "keywords": ["pinecone.init(", "pinecone.init ("], "reason": "CRITICAL: pinecone.init() was removed in v3."},
+            {"name": "correct_pinecone_import", "type": "must_contain_any", "keywords": ["from pinecone import Pinecone", "Pinecone(api_key"], "reason": "Must use Pinecone class constructor (v3+ API)."},
+            {"name": "no_deprecated_langchain_import", "type": "must_not_contain", "keywords": ["from langchain.embeddings import", "from langchain.chat_models import"], "reason": "LangChain embeddings moved to provider packages in v0.2."},
+        ],
+    ),
+    Scenario(
+        id="S12",
+        prompt="I'm building a Next.js AI chatbot with streaming responses and tool calling. What's the best TypeScript stack?",
+        truearch_calls=[
+            {"tool": "recommend_ai_stack", "kwargs": {"problem": "Next.js AI chatbot with streaming responses and tool calling", "language": "typescript"}},
+        ],
+        mcp_kwargs={"problem": "Next.js AI chatbot with streaming and tool calling", "language": "typescript"},
+        ground_truth=(
+            "Vercel AI SDK for streaming UI (useChat, streamText). "
+            "Next.js 14+ App Router. "
+            "OpenAI or Anthropic SDK as provider. "
+            "Optionally Mastra for complex agent orchestration. "
+            "Must NOT recommend Python-only frameworks for a TypeScript project."
+        ),
+        deterministic_checks=[
+            {"name": "typescript_native_tools", "type": "must_contain_any", "keywords": ["vercel ai sdk", "ai sdk", "useChat", "streamText", "next.js"], "reason": "TypeScript Next.js stack requires TypeScript-native AI tools."},
+            {"name": "mentions_streaming", "type": "must_contain_any", "keywords": ["stream", "useChat", "streaming", "realtime", "real-time"], "reason": "Query requires streaming — must address it."},
+        ],
+    ),
+    Scenario(
+        id="S13",
+        prompt="I need to add LLM observability to my production AI system. What tool should I use and how do I integrate it?",
+        truearch_calls=[
+            {"tool": "recommend_ai_stack", "kwargs": {"problem": "LLM observability and tracing for production AI system", "priority": "cost_efficiency"}},
+        ],
+        mcp_kwargs={"problem": "LLM observability for production AI system", "priority": "cost_efficiency"},
+        ground_truth=(
+            "LangSmith for LangChain systems. "
+            "Logfire for FastAPI + Pydantic AI (best native integration). "
+            "Arize or Helicone for vendor-neutral enterprise observability. "
+            "OpenTelemetry as underlying protocol for vendor portability. "
+            "Must mention token cost tracking."
+        ),
+        deterministic_checks=[
+            {"name": "mentions_observability_tool", "type": "must_contain_any", "keywords": ["langsmith", "logfire", "arize", "helicone", "opentelemetry", "wandb"], "reason": "Must recommend a specific observability tool."},
+            {"name": "mentions_tracing", "type": "must_contain_any", "keywords": ["trace", "tracing", "span", "log", "monitor"], "reason": "Observability query must address tracing/monitoring."},
+        ],
+    ),
+    Scenario(
+        id="S14",
+        prompt="We're using the Weaviate Python client v3. Do we need to migrate? How?",
+        truearch_calls=[
+            {"tool": "get_framework_score", "kwargs": {"framework_id": "weaviate"}},
+            {"tool": "get_code_patterns", "kwargs": {"framework_id": "weaviate", "use_case": "vector_store"}},
+        ],
+        mcp_kwargs={},
+        ground_truth=(
+            "YES — Weaviate Python client v4 is a COMPLETE REWRITE of v3. "
+            "v3 code will NOT work with v4 client. "
+            "client.schema.create_class() → client.collections.create(). "
+            "client.query.get() → client.collections.get().query.near_text(). "
+            "Tests whether TrueArch surfaces WEAV-001 critical migration issue."
+        ),
+        deterministic_checks=[
+            {"name": "warns_about_v4_breaking_change", "type": "must_contain_any", "keywords": ["v4", "version 4", "breaking change", "rewrite", "migration", "migrate"], "reason": "CRITICAL: Weaviate v4 client is a complete breaking rewrite."},
+            {"name": "provides_new_api_pattern", "type": "must_contain_any", "keywords": ["collections.create", "collections.get", "weaviate-client>=4"], "reason": "Must provide the new v4 API patterns."},
+        ],
+    ),
+    Scenario(
+        id="S15",
+        prompt="I'm a solo developer building an AI side project on a $50/month budget. What's the most cost-effective AI stack?",
+        truearch_calls=[
+            {"tool": "recommend_ai_stack", "kwargs": {"problem": "Cost-effective AI stack for solo developer with $50/month budget", "scale": "startup", "priority": "cost_efficiency"}},
+        ],
+        mcp_kwargs={"problem": "Cost-effective AI stack for solo developer side project", "scale": "startup", "priority": "cost_efficiency"},
+        ground_truth=(
+            "Ollama for local LLM inference (free). "
+            "Or Gemini Flash / GPT-4o Mini for cloud (lowest cost-per-token). "
+            "Chroma or PostgreSQL pgvector for vector DB (free self-hosted). "
+            "FastAPI for API layer. "
+            "Should NOT recommend Pinecone enterprise or expensive managed services."
+        ),
+        deterministic_checks=[
+            {"name": "cost_appropriate_stack", "type": "must_contain_any", "keywords": ["ollama", "gemini flash", "gpt-4o mini", "chroma", "pgvector", "free tier", "open source"], "reason": "Solo $50/month budget requires cost-optimized tools."},
+            {"name": "no_expensive_enterprise_stack", "type": "must_not_contain", "keywords": ["pinecone enterprise", "weaviate cloud enterprise"], "reason": "Enterprise managed services not appropriate for $50/month budget."},
+        ],
+    ),
 ]
 
 
@@ -269,7 +370,7 @@ class LLMResponse:
 def _call_gemini(
     system_prompt: str,
     user_prompt: str,
-    model: str = "gemini-2.0-flash",
+    model: str = "gemini-2.5-flash",
 ) -> LLMResponse:
     """
     Call Google Gemini API using the google-genai SDK.
@@ -375,7 +476,7 @@ def call_llm(
 ) -> LLMResponse:
     """Unified LLM call dispatcher."""
     if provider == "gemini":
-        return _call_gemini(system_prompt, user_prompt, model or "gemini-2.0-flash")
+        return _call_gemini(system_prompt, user_prompt, model or "gemini-2.5-flash")
     elif provider == "openai":
         return _call_openai(system_prompt, user_prompt, model or "gpt-4o-mini")
     else:
@@ -389,8 +490,11 @@ def call_llm(
 def build_truearch_context(scenario: Scenario) -> Tuple[str, int]:
     """
     Call TrueArch tools for a scenario and build the context injection string.
-    Returns (context_string, estimated_tokens).
+    Uses adaptive context compression and wraps with anti-hallucination guardrails.
+    Returns (augmented_prompt, estimated_tokens).
     """
+    from src.mcp.context_optimizer import compress_context, build_augmented_prompt
+
     results = []
     for call in scenario.truearch_calls:
         tool_name = call["tool"]
@@ -415,9 +519,13 @@ def build_truearch_context(scenario: Scenario) -> Tuple[str, int]:
 
         results.append({"tool": tool_name, "result": result})
 
-    context_json = json.dumps(results, indent=2, default=str)
-    estimated_tokens = len(context_json) // 4  # rough heuristic
-    return context_json, estimated_tokens
+    # Compress based on query intent
+    compressed_json, estimated_tokens, intent = compress_context(results, scenario.prompt)
+    
+    # Wrap with anti-hallucination guardrails and instructions
+    augmented_prompt = build_augmented_prompt(compressed_json, intent)
+    
+    return augmented_prompt, estimated_tokens
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -436,6 +544,12 @@ You have access to TrueArch architecture intelligence data (below). \
 Use this data to provide specific, accurate, and production-ready recommendations. \
 Include version numbers, installation commands, and code examples where relevant. \
 Be concise and opinionated — give a clear recommendation, not a menu of options.
+
+## Response Guidelines:
+1. Write a natural, professional architectural recommendation for a software engineer.
+2. Do NOT mention TrueArch, "TrueArch intelligence data", "overall scores", "score bands", "genome strings", or "confidence levels" directly in your response text.
+3. Translate the database metrics into natural justifications. For example, instead of saying "Qdrant has an overall score of 80/100 and a Strong score band", say "Qdrant is highly recommended for its production reliability and performance."
+4. Cite version numbers and statistics naturally as verified facts (or estimates if marked [estimated]). Do not print the "[verified]" or "[estimated]" tags literally.
 
 ## TrueArch Intelligence Data
 
@@ -917,7 +1031,7 @@ def main():
     )
     parser.add_argument(
         "--model", default=None,
-        help="Model name (default: gemini-2.0-flash / gpt-4o-mini)"
+        help="Model name (default: gemini-2.5-flash / gpt-4o-mini)"
     )
     parser.add_argument(
         "--scenarios", default=None,
@@ -950,7 +1064,7 @@ def main():
                 print("   Option 3: Set OPENAI_API_KEY env var")
                 sys.exit(1)
 
-    model = args.model or ("gemini-2.0-flash" if provider == "gemini" else "gpt-4o-mini")
+    model = args.model or ("gemini-2.5-flash" if provider == "gemini" else "gpt-4o-mini")
 
     # Filter scenarios if requested
     scenarios = SCENARIOS

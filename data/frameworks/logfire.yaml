@@ -1,0 +1,129 @@
+schema_version: "1.0"
+
+id: "logfire"
+name: "Logfire (Pydantic)"
+category: "observability"
+subcategory: "ai-native-observability"
+url: "https://github.com/pydantic/logfire"
+docs_url: "https://logfire.pydantic.dev/docs"
+license: "MIT"
+primary_language: "Python"
+latest_stable_version: "1.2.0"
+latest_stable_released: "2026-04-18"
+
+genome_dimension:
+  key: "D3_observability"
+  value: "LGF"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.78
+    open_security_advisories: 0
+    incident_rate: 0.06
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 3800
+    star_growth_30d_pct: 6.2             # Rapidly growing — new entrant gaining adoption
+    commits_last_90d: 95
+    commits_prev_90d: 72
+    merged_prs_per_30d: 14
+    avg_days_to_merge: 2.5
+    job_postings_30d: 22
+    so_questions_30d: 45
+    so_questions_prev_30d: 28
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3               # LangSmith, Arize, OpenTelemetry
+    public_api_methods: 25
+    migration_guide_count: 2
+    community_migrations: 4
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 7
+    doc_completeness_rating: 85
+    hipaa_deployments: 1
+    soc2_deployments: 3
+    gdpr_deployments: 2
+    other_compliance_deployments: 1
+    audit_support: "native"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 3
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "LGF-001"
+    severity: "medium"
+    category: "maturity"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Logfire is a relatively new product (GA in 2025). Some enterprise features (SSO, audit logs, RBAC) are still maturing compared to established tools like Datadog or Honeycomb."
+    affected_versions: ">=1.0.0"
+    resolved: false
+    workaround: "Evaluate maturity needs against team size. For large enterprises, supplement with OpenTelemetry for portable instrumentation."
+    source: "curated"
+    first_reported: "2025-06-01"
+
+  - id: "LGF-002"
+    severity: "low"
+    category: "vendor_lock_in"
+    frequency: "uncommon"
+    production_impact: "low"
+    description: "Logfire SaaS backend is proprietary. Self-hosted export to other backends requires OpenTelemetry exporters."
+    affected_versions: ">=0.1.0"
+    resolved: false
+    workaround: "Logfire is built on OpenTelemetry — use OTEL exporters to send data to alternative backends simultaneously."
+    source: "curated"
+    first_reported: "2025-01-01"
+
+compatible_with:
+  - framework: "fastapi"
+    strength: 0.98
+    notes: "Logfire has first-class FastAPI auto-instrumentation with one line: logfire.instrument_fastapi(app)."
+  - framework: "pydantic_ai"
+    strength: 0.95
+    notes: "Logfire is made by Pydantic; deepest integration with Pydantic AI agents including prompt tracing."
+  - framework: "opentelemetry"
+    strength: 0.90
+    notes: "Logfire exports to OTEL collector. All Logfire spans are OTEL-compatible."
+
+conflicts_with: []
+supersedes: []
+migrates_to:
+  - framework: "opentelemetry"
+    effort: 0.3
+    notes: "Since Logfire is OTEL-based, switching to raw OTEL is straightforward."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://logfire.pydantic.dev/docs"
+    - "https://github.com/pydantic/logfire/releases"
+  notes: "Logfire is Pydantic's observability platform — purpose-built for Python AI applications. It has the best native integration with FastAPI, Pydantic AI, and LangChain. For teams already using Pydantic (nearly every Python AI team), it provides exceptional developer experience with minimal instrumentation code."

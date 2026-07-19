@@ -68,12 +68,15 @@ class ScoringEngine:
         # Determine Score Band
         scores.score_band = self._determine_score_band(scores.overall)
         
-        # Set Validity
+        # Set Validity. last_computed honestly records WHEN scores were computed
+        # (now), but staleness/validity key off the underlying DATA age, not the
+        # process start time — otherwise every restart falsely resets freshness.
+        data_date = self._data_date(framework)
         scores.last_computed = self.today
-        scores.valid_until = self.today + timedelta(days=30)
+        scores.valid_until = data_date + timedelta(days=30)
 
-        # Staleness status
-        staleness_status, staleness_warning = self._determine_staleness(scores)
+        # Staleness status (based on real data age)
+        staleness_status, staleness_warning = self._determine_staleness(framework)
         scores.staleness_status = staleness_status
         scores.staleness_warning = staleness_warning
 
@@ -297,25 +300,39 @@ class ScoringEngine:
         else:
             return "Poor"
 
+    def _data_date(self, framework: FrameworkSchema) -> date:
+        """The most recent evidence-of-currency for a framework: the latest of
+        its human curation stamp and its per-signal capture dates. Data age is
+        measured against this, so freshness reflects the DATA, not process start.
+        """
+        candidates = [
+            framework.curation.last_validated,
+            framework.signals.production_stability.signals_date,
+            framework.signals.ecosystem_momentum.signals_date,
+            framework.signals.migration_risk.signals_date,
+            framework.signals.governance_readiness.signals_date,
+            framework.signals.agent_compatibility.signals_date,
+        ]
+        return max(candidates)
+
     def _determine_staleness(
         self,
-        scores: "ComputedScores",
+        framework: FrameworkSchema,
     ) -> tuple:
         """
-        Compute staleness status from last_computed date.
+        Compute staleness status from the real data age (last_validated + signal
+        capture dates), NOT the score computation time.
         Per SCORING_FORMULA.md DL-019:
-          fresh      → last_computed < 7 days ago
+          fresh      → data < 7 days old
           acceptable → 7-30 days
           stale      → 31-60 days (confidence penalty applied)
-          expired    → >60 days (recommendation blocked)
+          expired    → >60 days (warned loudly; does NOT block recommendations)
         """
-        if not scores.last_computed:
-            return ("expired", "No computation date recorded — signals may be very stale.")
-
-        days_old = (self.today - scores.last_computed).days
+        data_date = self._data_date(framework)
+        days_old = (self.today - data_date).days
 
         if days_old < 0:
-            return ("expired", "Computation date is in the future. Check system clock.")
+            return ("expired", "Data date is in the future. Check system clock.")
         elif days_old <= 7:
             return ("fresh", None)
         elif days_old <= 30:
@@ -323,15 +340,15 @@ class ScoringEngine:
         elif days_old <= 60:
             return (
                 "stale",
-                f"Signals are {days_old} days old. Confidence reduced. "
+                f"Framework data is {days_old} days old. Confidence reduced. "
                 "Re-validate before using in production decisions.",
             )
         else:
             return (
                 "expired",
-                f"Signals are {days_old} days old (>60 days). "
-                "This score is expired and should not be used for architectural decisions. "
-                "Re-curate framework data immediately.",
+                f"Framework data is {days_old} days old (>60 days). "
+                "Versions and known-issues may be out of date — verify against "
+                "upstream release notes before deciding. Re-curation is overdue.",
             )
 
 if __name__ == "__main__":

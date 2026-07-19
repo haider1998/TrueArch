@@ -1,35 +1,65 @@
-name: TrueArch Nightly Version Sync
+name: TrueArch Nightly Data Refresh
+
+# Crawls GitHub + PyPI/npm for every mapped framework, applies ONLY objective
+# fields (versions, release dates, stars, commit cadence, advisory counts) to the
+# YAML catalog, and opens a PR for human review. It never pushes to main directly
+# — a generated data change should always get a one-glance diff review, and the
+# full test suite (including the self-verifying deprecated-pattern tests) runs on
+# the PR before anything merges.
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # Run every night at 2 AM UTC
-  workflow_dispatch:      # Allow manual trigger
+    - cron: '0 2 * * *'   # every night at 02:00 UTC
+  workflow_dispatch:       # manual trigger / dry-run
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  sync-versions:
+  refresh:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests pyyaml
-          
-      - name: Run sync script
-        run: python -m src.scripts.sync_versions
-        
-      - name: Commit and push if changed
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/frameworks/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync framework versions [skip ci]" && git push)
+          pip install -r requirements.txt
+
+      - name: Crawl signals → data/signal_patches/
+        env:
+          # Higher GitHub API rate limits for the crawler.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m scripts.signal_pipeline.pipeline
+
+      - name: Apply objective fields to YAML (subjective fields untouched)
+        run: python -m scripts.signal_pipeline.apply_patch
+
+      - name: Open a refresh PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: data/nightly-refresh
+          delete-branch: true
+          commit-message: "chore(data): nightly signal refresh (versions, stars, dates)"
+          title: "chore(data): nightly signal refresh"
+          body: |
+            Automated refresh of **objective** framework signals (latest stable
+            versions, release dates, GitHub stars, commit cadence, advisory counts)
+            and `curation.last_validated`.
+
+            Subjective/curated fields (breaking-change counts, incident rates,
+            known issues, deprecated patterns) are **not** touched by automation.
+
+            Please skim the diff and merge if the version bumps look right.
+            CI (including the self-verifying deprecated-pattern tests) runs on this PR.
+          labels: |
+            data-refresh
+            automated

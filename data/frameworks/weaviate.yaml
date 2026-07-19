@@ -75,15 +75,146 @@ computed_scores:
   last_computed: null
   valid_until: null
 
-known_issues: []
+known_issues:
+  - id: "WEAV-001"
+    severity: "critical"
+    category: "api_change"
+    frequency: "very_common"
+    production_impact: "critical"
+    description: "The Weaviate Python client v4 (weaviate-client>=4.0) is a complete rewrite of v3. All collection creation, query, and data insertion APIs changed. Code using v3 client will fail against current Weaviate server."
+    affected_versions: "<4.0.0"
+    resolved: true
+    resolved_in: "4.0.0"
+    workaround: "Migrate to weaviate-client>=4.6.0. Replace client.schema.create_class() with client.collections.create(). Replace client.query.get() with client.collections.get().query.near_text()."
+    source: "https://weaviate.io/developers/weaviate/client-libraries/python/v3_v4_migration"
+    first_reported: "2024-02-01"
+
+  - id: "WEAV-002"
+    severity: "high"
+    category: "performance"
+    frequency: "common"
+    production_impact: "high"
+    description: "Weaviate's HNSW index loads entirely into RAM. For large collections (10M+ vectors), memory requirements can be 10-50GB. Without sufficient RAM, performance degrades significantly."
+    affected_versions: ">=1.0.0"
+    resolved: false
+    workaround: "Use PQ (Product Quantization) or BQ (Binary Quantization) to compress vectors in memory. Enable async indexing for ingestion. Use Weaviate Cloud (managed) for auto-scaling."
+    source: "https://weaviate.io/developers/weaviate/concepts/vector-index"
+    first_reported: "2023-06-01"
+
+  - id: "WEAV-003"
+    severity: "medium"
+    category: "hybrid_search"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Weaviate's hybrid search (BM25 + vector) alpha parameter tuning is not well-documented. Default alpha=0.75 may not be optimal for all use cases."
+    affected_versions: ">=1.17.0"
+    resolved: false
+    workaround: "Tune the alpha parameter (0=pure BM25, 1=pure vector) using A/B testing against your query distribution. Start with alpha=0.5 for balanced results."
+    source: "https://weaviate.io/developers/weaviate/search/hybrid"
+    first_reported: "2024-04-01"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "WVT-001"
+    severity: "critical"
+    bad_pattern: '\bweaviate\.Client\s*\('
+    bad_example: |
+      import weaviate
+      client = weaviate.Client('http://localhost:8080')
+    correct_example: |
+      import weaviate
+      client = weaviate.connect_to_local()  # or connect_to_weaviate_cloud(...)
+    version_deprecated: "4.0.0"
+    version_correct: ">=4.0.0"
+    description: >
+      The v3 weaviate.Client(url) constructor was replaced in the v4 rewrite by
+      connection helpers: connect_to_local(), connect_to_weaviate_cloud(), etc.
+    docs_url: "https://docs.weaviate.io/weaviate/client-libraries/python/v3_v4_migration"
+
+  - id: "WVT-002"
+    severity: "high"
+    bad_pattern: '\.data_object\.create\s*\('
+    bad_example: "client.data_object.create(data_object=obj, class_name='Article')"
+    correct_example: |
+      collection = client.collections.get('Article')
+      collection.data.insert(properties=obj)
+    version_deprecated: "4.0.0"
+    version_correct: ">=4.0.0"
+    description: >
+      The v3 data_object.create() REST-style API is replaced in v4 by typed
+      collections: client.collections.get(name).data.insert(...).
+    docs_url: "https://docs.weaviate.io/weaviate/client-libraries/python/v3_v4_migration"
+
+  - id: "WVT-003"
+    severity: "high"
+    bad_pattern: '\.query\.get\s*\('
+    bad_example: "client.query.get('Article', ['title']).do()"
+    correct_example: |
+      collection = client.collections.get('Article')
+      collection.query.fetch_objects(limit=10)
+    version_deprecated: "4.0.0"
+    version_correct: ">=4.0.0"
+    description: >
+      The v3 GraphQL-style query.get(...).do() builder is gone in v4. Use the
+      collection query methods: fetch_objects / near_text / hybrid.
+    docs_url: "https://docs.weaviate.io/weaviate/client-libraries/python/v3_v4_migration"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "WEA-001"
+    severity: "critical"
+    bad_pattern: '\bweaviate\.Client\s*\('
+    bad_example: |
+      import weaviate
+      client = weaviate.Client('http://localhost:8080')
+    correct_example: |
+      import weaviate
+      client = weaviate.connect_to_local()   # or connect_to_weaviate_cloud(...)
+    version_deprecated: "4.0.0"
+    version_correct: ">=4.0.0"
+    description: >
+      weaviate.Client(url) is the v3 API. The v4 Python client is a complete rewrite;
+      connect via weaviate.connect_to_local() / connect_to_weaviate_cloud().
+    docs_url: "https://docs.weaviate.io/weaviate/client-libraries/python"
+
+  - id: "WEA-002"
+    severity: "high"
+    bad_pattern: '\bclient\.query\.get\s*\('
+    bad_example: "client.query.get('Article', ['title']).with_limit(5).do()"
+    correct_example: |
+      articles = client.collections.get('Article')
+      response = articles.query.near_text(query='...', limit=5)
+    version_deprecated: "4.0.0"
+    version_correct: ">=4.0.0"
+    description: >
+      The builder-style client.query.get(...).with_*().do() chain is v3. v4 uses
+      typed collections: client.collections.get('Article').query.*.
+    docs_url: "https://docs.weaviate.io/weaviate/client-libraries/python/v3_v4_migration"
+
+  - id: "WEA-003"
+    severity: "high"
+    bad_pattern: '\bclient\.data_object\.create\s*\('
+    bad_example: "client.data_object.create({'title': 'x'}, 'Article')"
+    correct_example: |
+      articles = client.collections.get('Article')
+      articles.data.insert({'title': 'x'})
+    version_deprecated: "4.0.0"
+    version_correct: ">=4.0.0"
+    description: >
+      client.data_object.create(...) is the v3 write API. v4 uses
+      collection.data.insert(...) on a typed collection handle.
+    docs_url: "https://docs.weaviate.io/weaviate/client-libraries/python/v3_v4_migration"
 
 compatible_with:
   - framework: "langchain"
     strength: 0.90
-    notes: "Native integration"
+    notes: "langchain_weaviate provides first-class WeaviateVectorStore integration with v4 client."
   - framework: "llamaindex"
-    strength: 0.90
-    notes: "Native integration"
+    strength: 0.88
+    notes: "LlamaIndex WeaviateVectorStore supports hybrid search natively."
+  - framework: "haystack"
+    strength: 0.82
+    notes: "Haystack WeaviateDocumentStore supports v4 client with hybrid search."
 
 conflicts_with: []
 
@@ -91,18 +222,20 @@ supersedes: []
 
 migrates_to:
   - framework: "qdrant"
-    effort: 0.50
-    notes: "Data re-indexing required"
+    effort: 0.4
+    notes: "Qdrant has simpler deployment and comparable performance; good migration target if you want less RAM overhead."
 
 curation:
   status: "curated"
   last_validated: "2026-05-16"
-  validated_by: "founder"
+  validated_by: "truearch-team"
   next_validation_due: "2026-06-16"
   confidence_override: null
   sources:
-    - "https://github.com/weaviate/weaviate"
+    - "https://weaviate.io/developers/weaviate"
+    - "https://github.com/weaviate/weaviate/releases"
   notes: |
-    Verified May 2026: 16,200 GitHub stars, version 1.37.x.
-    Strong contender against Qdrant for self-hosted enterprise workloads.
-    Known for extensive module system (text2vec, multi2vec).
+    IMPORTANT: The Python v4 client (weaviate-client>=4.0) is a BREAKING change from v3.
+    Any code using the old client.schema, client.data_object, or client.query.get() APIs must be migrated.
+    Weaviate v1.37+ is excellent for multi-modal search (text+image) and hybrid search use cases.
+    Strong enterprise governance posture with SOC2 and GDPR support.

@@ -103,6 +103,56 @@ known_issues:
     workaround: "Use direct API calls for simple prompt-response patterns; reserve LCEL for complex chains"
     source: "https://github.com/langchain-ai/langchain/issues/14892"
 
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "LCH-001"
+    severity: "critical"
+    bad_pattern: 'from\s+langchain\.chat_models\s+import'
+    bad_example: "from langchain.chat_models import ChatOpenAI"
+    correct_example: "from langchain_openai import ChatOpenAI"
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.2.0"
+    description: >
+      langchain.chat_models was moved to separate provider packages in v0.1. Use
+      langchain_openai, langchain_anthropic, or langchain_google_genai.
+    docs_url: "https://python.langchain.com/docs/how_to/migrate/"
+
+  - id: "LCH-002"
+    severity: "high"
+    bad_pattern: 'from\s+langchain\.llms\s+import'
+    bad_example: "from langchain.llms import OpenAI"
+    correct_example: "from langchain_openai import OpenAI"
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.2.0"
+    description: >
+      langchain.llms has been moved to provider-specific packages. Use
+      `from langchain_openai import OpenAI` or equivalent.
+    docs_url: "https://python.langchain.com/docs/how_to/migrate/"
+
+  - id: "LCH-003"
+    severity: "medium"
+    bad_pattern: 'from\s+langchain\.embeddings\s+import'
+    bad_example: "from langchain.embeddings import OpenAIEmbeddings"
+    correct_example: "from langchain_openai import OpenAIEmbeddings"
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.2.0"
+    description: >
+      langchain.embeddings has been split into provider packages. Use
+      langchain_openai, langchain_community, etc.
+    docs_url: "https://python.langchain.com/docs/how_to/migrate/"
+
+  - id: "LCH-004"
+    severity: "high"
+    bad_pattern: '\.predict\s*\('
+    bad_example: 'response = llm.predict("Tell me a joke")'
+    correct_example: 'response = llm.invoke("Tell me a joke")'
+    version_deprecated: "0.1.7"
+    version_correct: ">=0.2.0"
+    description: >
+      The .predict() method on LLMs and chains is deprecated in favor of .invoke().
+      Use .invoke() for single calls, .stream() for streaming, .batch() for batches.
+    docs_url: "https://python.langchain.com/docs/how_to/migrate/"
+
 compatible_with:
   - framework: "langgraph"
     strength: 0.85

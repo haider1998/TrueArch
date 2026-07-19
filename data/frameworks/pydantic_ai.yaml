@@ -94,6 +94,65 @@ known_issues:
     workaround: "Use explicit handoff patterns and typed inter-agent messages; see docs for composition examples"
     source: "https://ai.pydantic.dev"
 
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "PYA-001"
+    severity: "high"
+    bad_pattern: '\bresult\.data\b'
+    bad_example: |
+      result = agent.run_sync('hello')
+      print(result.data)
+    correct_example: |
+      result = agent.run_sync('hello')
+      print(result.output)
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.1.0"
+    description: >
+      PydanticAI renamed the run result's `.data` attribute to `.output` (and
+      result_type → output_type) around v0.1. Use result.output.
+    docs_url: "https://ai.pydantic.dev/output/"
+
+  - id: "PYA-002"
+    severity: "medium"
+    bad_pattern: '\bresult_type\s*='
+    bad_example: "agent = Agent('openai:gpt-4o', result_type=MyModel)"
+    correct_example: "agent = Agent('openai:gpt-4o', output_type=MyModel)"
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.1.0"
+    description: >
+      The Agent `result_type` parameter was renamed to `output_type` in the v0.1
+      output-API cleanup.
+    docs_url: "https://ai.pydantic.dev/output/"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "PYA-001"
+    severity: "high"
+    bad_pattern: '\bresult\.data\b'
+    bad_example: |
+      result = agent.run_sync('hello')
+      print(result.data)
+    correct_example: |
+      result = agent.run_sync('hello')
+      print(result.output)
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.1.0"
+    description: >
+      The run-result attribute was renamed from `.data` to `.output` in PydanticAI
+      (and result_type → output_type). Use result.output.
+    docs_url: "https://ai.pydantic.dev/agents/"
+
+  - id: "PYA-002"
+    severity: "medium"
+    bad_pattern: '\bresult_type\s*='
+    bad_example: "agent = Agent('openai:gpt-4o', result_type=MyModel)"
+    correct_example: "agent = Agent('openai:gpt-4o', output_type=MyModel)"
+    version_deprecated: "0.1.0"
+    version_correct: ">=0.1.0"
+    description: >
+      The Agent `result_type` parameter was renamed to `output_type`. Update the kwarg.
+    docs_url: "https://ai.pydantic.dev/output/"
+
 compatible_with:
   - framework: "opentelemetry"
     strength: 0.75
