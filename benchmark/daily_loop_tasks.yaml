@@ -1,0 +1,94 @@
+# Daily-loop evaluation tasks.
+#
+# Each task is a natural coding request that a model trained on older code tends to
+# answer with a deprecated API (the "trap"). The eval runs each task through the
+# real `claude` CLI in three arms (baseline / truearch_organic / truearch_nudged)
+# and grades the generated code with TrueArch's own validate_code.
+#
+# framework_id  → which framework's deprecated_patterns to grade against
+# trap          → the deprecated pattern id (from data/frameworks/*.yaml) we expect
+#                 a naive answer to hit (informational; grading counts ALL violations)
+
+tasks:
+  - id: T01
+    framework_id: pinecone
+    trap: PCN-001
+    prompt: >
+      Write a short Python script that connects to Pinecone, creates a serverless
+      index called "docs" with dimension 1536, and upserts 3 example vectors.
+
+  - id: T02
+    framework_id: langgraph
+    trap: LGR-V-001
+    prompt: >
+      Write a minimal LangGraph agent that keeps persistent memory across turns for
+      a given thread. Show the graph construction and how you compile it.
+
+  - id: T03
+    framework_id: openai_sdk
+    trap: OAI-V-001
+    prompt: >
+      Write a Python snippet that calls an OpenAI chat model with a single user
+      message and prints the assistant's reply.
+
+  - id: T04
+    framework_id: anthropic_sdk
+    trap: ANT-001
+    prompt: >
+      Write a Python snippet using the Anthropic SDK that sends "Hello" to Claude and
+      prints the response text.
+
+  - id: T05
+    framework_id: weaviate
+    trap: WEA-001
+    prompt: >
+      Write Python that connects to a local Weaviate instance and returns the 5
+      nearest objects in an "Article" collection to a text query.
+
+  - id: T06
+    framework_id: langchain
+    trap: LCH-001
+    prompt: >
+      Write a LangChain snippet that imports a chat model and invokes it with a
+      single prompt.
+
+  - id: T07
+    framework_id: llamaindex
+    trap: LLI-001
+    prompt: >
+      Write a LlamaIndex snippet that loads documents from a directory and builds a
+      vector index over them.
+
+  - id: T08
+    framework_id: chroma
+    trap: CHR-001
+    prompt: >
+      Write Python that creates a persistent Chroma client, makes a collection, and
+      adds a couple of documents.
+
+  - id: T09
+    framework_id: autogen
+    trap: AUT-001
+    prompt: >
+      Write a Microsoft AutoGen snippet that sets up an assistant agent and runs a
+      simple task with it.
+
+  - id: T10
+    framework_id: qdrant
+    trap: QDR-V-001
+    prompt: >
+      Write Python that connects to Qdrant and searches a "docs" collection for the
+      nearest vectors to a query vector.
+
+  - id: T11
+    framework_id: crewai
+    trap: CRW-V-001
+    prompt: >
+      Write a CrewAI snippet that builds a crew of two agents running sequentially.
+
+  - id: T12
+    framework_id: pydantic_ai
+    trap: PYA-001
+    prompt: >
+      Write a PydanticAI snippet where an agent returns a typed structured result,
+      then print the returned value.
