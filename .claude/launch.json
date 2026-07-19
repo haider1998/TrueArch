@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portfolio-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8123", "-d", "/private/tmp/claude-501/-Users-smhrizvi-AntiGravityProjects-TrueArch/a4822d97-5e3d-4ff1-89d3-9e45acfb4dbf/scratchpad/portfolio"],
+      "port": 8123
+    }
+  ]
+}

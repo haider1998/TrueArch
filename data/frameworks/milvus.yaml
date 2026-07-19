@@ -1,0 +1,142 @@
+schema_version: "1.0"
+
+id: "milvus"
+name: "Milvus"
+category: "vector-db"
+subcategory: "distributed-vector-search"
+url: "https://github.com/milvus-io/milvus"
+docs_url: "https://milvus.io/docs"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "2.4.9"
+latest_stable_released: "2026-04-30"
+
+genome_dimension:
+  key: "D5_vector_store"
+  value: "MIL"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1
+    issue_resolution_ratio: 0.72
+    open_security_advisories: 0
+    incident_rate: 0.07
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 31000
+    star_growth_30d_pct: 2.2
+    commits_last_90d: 280                # Zilliz-backed active development
+    commits_prev_90d: 245
+    merged_prs_per_30d: 42
+    avg_days_to_merge: 3.5
+    job_postings_30d: 120
+    so_questions_30d: 210
+    so_questions_prev_30d: 170
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3               # Qdrant, Pinecone, Weaviate
+    public_api_methods: 70
+    migration_guide_count: 4
+    community_migrations: 12
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 12
+    doc_completeness_rating: 80
+    hipaa_deployments: 5
+    soc2_deployments: 8
+    gdpr_deployments: 6
+    other_compliance_deployments: 3
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: false
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 5
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "MIL-001"
+    severity: "high"
+    category: "deployment_complexity"
+    frequency: "very_common"
+    production_impact: "high"
+    description: "Milvus distributed mode requires Kubernetes + etcd + MinIO/S3 + Pulsar/Kafka. Deployment complexity is significantly higher than Qdrant or Pinecone."
+    affected_versions: ">=2.0.0"
+    resolved: false
+    workaround: "Use Milvus Lite (single-binary) for dev/test. Use Zilliz Cloud (managed Milvus) for production to avoid ops overhead."
+    source: "curated"
+    first_reported: "2022-11-01"
+
+  - id: "MIL-002"
+    severity: "high"
+    category: "resource_usage"
+    frequency: "common"
+    production_impact: "high"
+    description: "Milvus distributed mode requires significant memory for index loading. HNSW indexes for 100M+ vectors require 50GB+ RAM per node."
+    affected_versions: ">=2.0.0"
+    resolved: false
+    workaround: "Use DiskANN or IVF_SQ8 indexes for memory efficiency. Enable mmap for large-scale index storage."
+    source: "https://milvus.io/docs/index.md"
+    first_reported: "2023-05-01"
+
+  - id: "MIL-003"
+    severity: "medium"
+    category: "api_change"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Milvus 2.x Python client (pymilvus) had significant API changes from 1.x. The Collection-based API replaced the legacy API."
+    affected_versions: "<2.0.0"
+    resolved: true
+    resolved_in: "2.0.0"
+    workaround: "Use pymilvus>=2.4.0. Use MilvusClient (new unified API) instead of the legacy Connections+Collection pattern."
+    source: "https://milvus.io/docs/migrate_overview.md"
+    first_reported: "2022-06-01"
+
+compatible_with:
+  - framework: "langchain"
+    strength: 0.88
+    notes: "Milvus has first-class LangChain vector store integration."
+  - framework: "haystack"
+    strength: 0.82
+    notes: "Haystack MilvusDocumentStore is available as a community integration."
+
+conflicts_with: []
+supersedes: []
+migrates_to:
+  - framework: "qdrant"
+    effort: 0.4
+    notes: "Qdrant is simpler to self-host and has comparable performance."
+  - framework: "pinecone"
+    effort: 0.3
+    notes: "Pinecone is fully managed; eliminates all ops overhead."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://milvus.io/docs"
+    - "https://github.com/milvus-io/milvus/releases"
+  notes: "Milvus is the second-most deployed open-source vector database after Qdrant. It excels at massive scale (1B+ vectors) but has significantly higher operational complexity than Qdrant or Pinecone. Best for teams with strong Kubernetes expertise and needs beyond 100M vectors at scale."

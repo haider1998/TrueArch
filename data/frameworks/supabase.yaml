@@ -77,6 +77,62 @@ computed_scores:
 
 known_issues: []
 
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "SUP-001"
+    severity: "high"
+    bad_pattern: '@supabase/auth-helpers-nextjs'
+    bad_example: "import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'"
+    correct_example: "import { createBrowserClient } from '@supabase/ssr'"
+    version_deprecated: "0.9.0"
+    version_correct: ">=0.9.0"
+    description: >
+      @supabase/auth-helpers-* is deprecated in favor of the unified @supabase/ssr
+      package (createBrowserClient / createServerClient).
+    docs_url: "https://supabase.com/docs/guides/auth/server-side/nextjs"
+    language: "typescript"
+
+  - id: "SUP-002"
+    severity: "medium"
+    bad_pattern: '\.signIn\s*\(\s*\{'
+    bad_example: "await supabase.auth.signIn({ email, password })"
+    correct_example: "await supabase.auth.signInWithPassword({ email, password })"
+    version_deprecated: "2.0.0"
+    version_correct: ">=2.0.0"
+    description: >
+      supabase-js v2 split the v1 `signIn()` method into explicit methods:
+      signInWithPassword, signInWithOAuth, signInWithOtp.
+    docs_url: "https://supabase.com/docs/reference/javascript/auth-signinwithpassword"
+    language: "typescript"
+
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "SUP-001"
+    severity: "high"
+    bad_pattern: '@supabase/auth-helpers-nextjs'
+    bad_example: "import { createClient } from '@supabase/auth-helpers-nextjs'"
+    correct_example: "import { createServerClient } from '@supabase/ssr'"
+    version_deprecated: "0.9.0"
+    version_correct: ">=0.0.10"
+    description: >
+      The @supabase/auth-helpers-* packages are deprecated. Use @supabase/ssr for
+      cookie-based auth in Next.js/SvelteKit/Remix server contexts.
+    docs_url: "https://supabase.com/docs/guides/auth/server-side/creating-a-client"
+    language: "typescript"
+
+  - id: "SUP-002"
+    severity: "medium"
+    bad_pattern: "\\.getSessionFromUrl\\s*\\("
+    bad_example: "const { data } = await supabase.auth.getSessionFromUrl()"
+    correct_example: "const { data } = await supabase.auth.exchangeCodeForSession(code)"
+    version_deprecated: "2.0.0"
+    version_correct: ">=2.0.0"
+    description: >
+      getSessionFromUrl() (GoTrue v1) was removed in supabase-js v2's PKCE flow.
+      Use exchangeCodeForSession() in the OAuth callback.
+    docs_url: "https://supabase.com/docs/reference/javascript/auth-exchangecodeforsession"
+    language: "typescript"
+
 compatible_with:
   - framework: "postgresql_pgvector"
     strength: 1.0

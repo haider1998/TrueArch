@@ -94,6 +94,49 @@ known_issues:
     workaround: "Prefer LlamaIndex-maintained integrations; verify community integrations are actively maintained before adopting"
     source: "https://github.com/run-llama/llama_index"
 
+# Deprecated API patterns for the validate_code tool (daily-loop hallucination killer)
+deprecated_patterns:
+  - id: "LLI-001"
+    severity: "critical"
+    bad_pattern: 'from\s+llama_index\s+import\s'
+    bad_example: "from llama_index import VectorStoreIndex, SimpleDirectoryReader"
+    correct_example: "from llama_index.core import VectorStoreIndex, SimpleDirectoryReader"
+    version_deprecated: "0.10.0"
+    version_correct: ">=0.10.0"
+    description: >
+      In LlamaIndex v0.10 the package was split: core imports moved from
+      `llama_index` to `llama_index.core`, and integrations to `llama_index.*` subpackages.
+    docs_url: "https://docs.llamaindex.ai/en/stable/getting_started/v0_10_0_migration/"
+
+  - id: "LLI-002"
+    severity: "high"
+    bad_pattern: '\bServiceContext\b'
+    bad_example: |
+      from llama_index import ServiceContext
+      service_context = ServiceContext.from_defaults(llm=llm)
+    correct_example: |
+      from llama_index.core import Settings
+      Settings.llm = llm
+      Settings.embed_model = embed_model
+    version_deprecated: "0.10.0"
+    version_correct: ">=0.10.0"
+    description: >
+      ServiceContext was deprecated in v0.10 and removed thereafter. Use the global
+      Settings object (llama_index.core.Settings) to configure llm/embed_model.
+    docs_url: "https://docs.llamaindex.ai/en/stable/module_guides/supporting_modules/settings/"
+
+  - id: "LLI-003"
+    severity: "medium"
+    bad_pattern: 'from\s+llama_index\.llms\s+import\s+OpenAI'
+    bad_example: "from llama_index.llms import OpenAI"
+    correct_example: "from llama_index.llms.openai import OpenAI"
+    version_deprecated: "0.10.0"
+    version_correct: ">=0.10.0"
+    description: >
+      Provider LLMs moved to dedicated integration packages in v0.10, e.g.
+      `llama_index.llms.openai`. Install llama-index-llms-openai.
+    docs_url: "https://docs.llamaindex.ai/en/stable/getting_started/v0_10_0_migration/"
+
 compatible_with:
   - framework: "qdrant"
     strength: 0.90

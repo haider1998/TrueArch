@@ -1,0 +1,142 @@
+schema_version: "1.0"
+
+id: "haystack"
+name: "Haystack"
+category: "orchestration"
+subcategory: "rag-native-orchestration"
+url: "https://github.com/deepset-ai/haystack"
+docs_url: "https://docs.haystack.deepset.ai"
+license: "Apache-2.0"
+primary_language: "Python"
+latest_stable_version: "2.3.1"
+latest_stable_released: "2026-05-02"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "HAY"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 1          # v2 is stable; patch-level releases only
+    issue_resolution_ratio: 0.75
+    open_security_advisories: 0
+    incident_rate: 0.08
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 18000
+    star_growth_30d_pct: 2.8
+    commits_last_90d: 110
+    commits_prev_90d: 92
+    merged_prs_per_30d: 18
+    avg_days_to_merge: 4.0
+    job_postings_30d: 95
+    so_questions_30d: 185
+    so_questions_prev_30d: 152
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 3               # LangChain, LlamaIndex, custom pipelines
+    public_api_methods: 65
+    migration_guide_count: 4
+    community_migrations: 10
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 10
+    doc_completeness_rating: 82
+    hipaa_deployments: 4
+    soc2_deployments: 6
+    gdpr_deployments: 8
+    other_compliance_deployments: 2
+    audit_support: "plugin"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "community_plugin"
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: true
+    state_management_rating: 6           # Pipeline state is first-class in Haystack v2
+    multiagent_support: "possible"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "HAY-001"
+    severity: "critical"
+    category: "api_change"
+    frequency: "common"
+    production_impact: "critical"
+    description: "Haystack v2 is a complete rewrite of v1. v1 code is not compatible with v2. All Document Stores, Pipelines, and Nodes changed their APIs."
+    affected_versions: "<2.0.0"
+    resolved: true
+    resolved_in: "2.0.0"
+    workaround: "Follow the official Haystack v1→v2 migration guide. The Pipeline.run() API changed significantly."
+    source: "https://docs.haystack.deepset.ai/docs/migration-guide-v1-to-v2"
+    first_reported: "2024-03-01"
+
+  - id: "HAY-002"
+    severity: "high"
+    category: "performance"
+    frequency: "common"
+    production_impact: "high"
+    description: "Dense retrieval pipelines require embedding model inference which can be slow without GPU. Default BM25 retriever is CPU-only and does not scale beyond ~1M docs well."
+    affected_versions: ">=2.0.0"
+    resolved: false
+    workaround: "Use Qdrant/Milvus Document Stores with pre-computed embeddings. Use async pipeline execution for throughput."
+    source: "curated"
+    first_reported: "2024-04-01"
+
+  - id: "HAY-003"
+    severity: "medium"
+    category: "ecosystem"
+    frequency: "uncommon"
+    production_impact: "medium"
+    description: "Haystack is less known than LangChain/LlamaIndex; community support and third-party integrations are smaller."
+    affected_versions: ">=2.0.0"
+    resolved: false
+    workaround: "Use official deepset integrations for major providers. For niche integrations, consider LangChain as an alternative."
+    source: "curated"
+    first_reported: "2024-01-01"
+
+compatible_with:
+  - framework: "qdrant"
+    strength: 0.92
+    notes: "QdrantDocumentStore is a first-class Haystack integration with hybrid search support."
+  - framework: "opentelemetry"
+    strength: 0.85
+    notes: "Haystack has native pipeline tracing compatible with OpenTelemetry."
+  - framework: "fastapi"
+    strength: 0.88
+    notes: "Haystack pipelines run as async functions, integrating cleanly with FastAPI."
+
+conflicts_with: []
+supersedes: []
+migrates_to:
+  - framework: "langgraph"
+    effort: 0.6
+    notes: "LangGraph is more flexible for stateful agents; Haystack is more opinionated for RAG pipelines."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://docs.haystack.deepset.ai"
+    - "https://github.com/deepset-ai/haystack/releases"
+  notes: "Haystack is the strongest RAG-native orchestrator — it was purpose-built for document question answering, hybrid search, and production RAG pipelines. The v2 rewrite made it async-native and composable. Best choice when the primary use case is document retrieval, not general agent orchestration."

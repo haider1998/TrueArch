@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "truearch-mcp"
+version = "2.0.0"
+description = "The hallucination killer for AI coding agents — real versions, real APIs, and validated code patterns for 39 AI frameworks, served over MCP."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "TrueArch" }]
+keywords = ["mcp", "ai", "llm", "code-validation", "architecture", "agents", "claude", "cursor", "copilot"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+# Runtime deps only. Test/tooling deps live in optional-dependencies.
+dependencies = [
+    "mcp>=1.27.0,<2.0.0",
+    "pydantic>=2.13.0,<3.0.0",
+    "pyyaml>=6.0,<7.0",
+    "packaging>=23.0",
+    "fastapi>=0.136.0,<0.200.0",
+    "uvicorn>=0.23.0,<1.0.0",
+    "anyio>=4.0.0,<5.0.0",
+]
+
+[project.optional-dependencies]
+# Signal-refresh pipeline (crawlers + YAML applier).
+pipeline = ["requests>=2.31", "ruamel.yaml>=0.18,<0.20"]
+# Test suite.
+test = ["pytest>=9.0.0,<10.0.0", "httpx>=0.27.0,<1.0.0"]
+# A/B benchmark harness (needs a model provider SDK / API key).
+benchmark = ["google-genai>=1.0"]
+
+[project.scripts]
+# stdio by default; `truearch-mcp --http --port 8001` for streamable HTTP.
+truearch-mcp = "src.mcp.server:run"
+
+[project.urls]
+Homepage = "https://github.com/TrueArchAI/truearch"
+Documentation = "https://github.com/TrueArchAI/truearch#readme"
+
+[tool.hatch.build.targets.wheel]
+# Ship the code (src/) and the curated catalog (data/) at the same level so the
+# frameworks_dir() resolver (parents[2]/data/frameworks) finds the YAMLs whether
+# running from a checkout or an installed wheel.
+packages = ["src"]
+force-include = { "data" = "data" }
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "data", "README.md", "pyproject.toml"]

@@ -1,0 +1,142 @@
+schema_version: "1.0"
+
+id: "mastra"
+name: "Mastra"
+category: "orchestration"
+subcategory: "typescript-agent-orchestration"
+url: "https://github.com/mastra-ai/mastra"
+docs_url: "https://mastra.ai/docs"
+license: "ELv2"
+primary_language: "TypeScript"
+latest_stable_version: "0.9.1"
+latest_stable_released: "2026-05-05"
+
+genome_dimension:
+  key: "D8_orchestrator"
+  value: "MST"
+
+signals:
+  production_stability:
+    breaking_changes_per_90d: 4          # Pre-1.0 — API is still evolving fast
+    issue_resolution_ratio: 0.60
+    open_security_advisories: 0
+    incident_rate: 0.15
+    incident_rate_source: "default"
+    signals_date: "2026-05-16"
+
+  ecosystem_momentum:
+    github_stars: 12000                  # Extremely fast growth — 0 to 12K in under 12 months
+    star_growth_30d_pct: 8.5             # Fastest growing TS agent framework
+    commits_last_90d: 320
+    commits_prev_90d: 210
+    merged_prs_per_30d: 48
+    avg_days_to_merge: 2.0
+    job_postings_30d: 35
+    so_questions_30d: 80
+    so_questions_prev_30d: 42
+    signals_date: "2026-05-16"
+
+  migration_risk:
+    viable_alternatives: 2               # Vercel AI SDK, LangChain.js
+    public_api_methods: 45
+    migration_guide_count: 1
+    community_migrations: 3
+    signals_date: "2026-05-16"
+
+  governance_readiness:
+    unpatched_cves: 0
+    avg_days_to_patch: 14
+    doc_completeness_rating: 70
+    hipaa_deployments: 0
+    soc2_deployments: 1
+    gdpr_deployments: 1
+    other_compliance_deployments: 0
+    audit_support: "none"
+    signals_date: "2026-05-16"
+
+  agent_compatibility:
+    mcp_support: "native"                # Mastra has built-in MCP client support
+    is_async_native: true
+    is_thread_safe: true
+    has_concurrency_benchmarks: false
+    state_management_rating: 7           # First-class workflow state management
+    multiagent_support: "native"
+    signals_date: "2026-05-16"
+
+
+computed_scores:
+  production_stability: null
+  ecosystem_momentum: null
+  migration_risk: null
+  governance_readiness: null
+  agent_compatibility: null
+  overall: null
+  confidence: null
+  score_band: null
+  last_computed: null
+  valid_until: null
+known_issues:
+  - id: "MST-001"
+    severity: "critical"
+    category: "maturity"
+    frequency: "very_common"
+    production_impact: "critical"
+    description: "Mastra is pre-1.0 and has breaking API changes in every minor release. NOT recommended for production without pinning versions and extensive testing."
+    affected_versions: "<1.0.0"
+    resolved: false
+    workaround: "Pin exact version (e.g., mastra@0.9.1). Subscribe to release notes. Test every upgrade in staging before production."
+    source: "https://github.com/mastra-ai/mastra/releases"
+    first_reported: "2025-03-01"
+
+  - id: "MST-002"
+    severity: "high"
+    category: "production_readiness"
+    frequency: "common"
+    production_impact: "high"
+    description: "Mastra's workflow persistence requires a PostgreSQL database and Upstash Redis. Self-hosting these adds significant operational overhead."
+    affected_versions: ">=0.5.0"
+    resolved: false
+    workaround: "Use Mastra Cloud (managed hosting) for simplest production path. For self-hosted, use managed Postgres (RDS/Neon) and Upstash Redis."
+    source: "https://mastra.ai/docs/deployment"
+    first_reported: "2025-06-01"
+
+  - id: "MST-003"
+    severity: "high"
+    category: "ecosystem"
+    frequency: "common"
+    production_impact: "medium"
+    description: "Mastra is TypeScript-only. Python-primary teams cannot use it without a separate TypeScript service layer."
+    affected_versions: ">=0.1.0"
+    resolved: false
+    workaround: "For mixed Python/TypeScript teams, use Mastra for the frontend/agent layer and expose Python services via FastAPI REST APIs."
+    source: "curated"
+    first_reported: "2025-01-01"
+
+compatible_with:
+  - framework: "mcp_sdk_python"
+    strength: 0.90
+    notes: "Mastra has built-in MCP client — can connect to any MCP server including Python ones."
+  - framework: "vercel_ai_sdk"
+    strength: 0.85
+    notes: "Both are TypeScript-native; Mastra handles orchestration while Vercel AI SDK handles streaming UI."
+
+conflicts_with:
+  - framework: "langchain"
+    severity: "low"
+    notes: "LangChain is Python-first; Mastra is TypeScript-only. Not technically conflicting but not interoperable without an API boundary."
+
+supersedes: []
+migrates_to:
+  - framework: "vercel_ai_sdk"
+    effort: 0.5
+    notes: "Vercel AI SDK is simpler but less opinionated about agent architecture."
+
+curation:
+  status: "curated"
+  last_validated: "2026-05-16"
+  validated_by: "truearch-team"
+  next_validation_due: "2026-06-16"
+  sources:
+    - "https://mastra.ai/docs"
+    - "https://github.com/mastra-ai/mastra/releases"
+  notes: "Mastra is the fastest-growing TypeScript agent framework in 2026. It provides LangGraph-like workflow orchestration, built-in MCP support, memory, and RAG primitives — all in TypeScript. CAUTION: pre-1.0, not production-stable. Best for TypeScript-native teams building AI products who want an opinionated full-stack solution. Watch it closely — likely to hit 1.0 stability in H2 2026."
