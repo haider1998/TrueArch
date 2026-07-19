@@ -31,3 +31,7 @@ scratch/
 .DS_Store
 *.swp
 .idea/
+
+# Local MCP config has machine-specific absolute paths — use .mcp.json.example
+.mcp.json
+.claude/settings.local.json

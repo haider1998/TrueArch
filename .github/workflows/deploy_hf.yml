@@ -1,0 +1,33 @@
+name: Deploy to Hugging Face Spaces
+
+# Pushes the latest main branch to the Hugging Face Space whenever main
+# is updated. The Space uses the Dockerfile at the repo root; HF Spaces
+# rebuilds the Docker image automatically on each push.
+#
+# Required GitHub secret: HF_TOKEN — a Hugging Face write token for the
+# smhrizvi281 account (Settings → Access Tokens → New token → Write scope).
+# Add it at: https://github.com/haider1998/TrueArch/settings/secrets/actions
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Push to Hugging Face Spaces
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Full history so the HF push isn't a shallow squash
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config user.email "deploy-bot@truearch.ai"
+          git config user.name "TrueArch Deploy Bot"
+          git remote add hf https://smhrizvi281:${HF_TOKEN}@huggingface.co/spaces/smhrizvi281/truearch-mcp
+          git push hf main --force

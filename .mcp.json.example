@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "truearch": {
+      "command": "/path/to/your/venv/bin/truearch-mcp",
+      "description": "TrueArch — the hallucination killer for AI coding agents."
+    }
+  }
+}
