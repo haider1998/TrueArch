@@ -22,12 +22,19 @@ WORKDIR /app
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy application source
-COPY src/ ./src/
-COPY data/ ./data/
-
-# Non-root user for security (Hugging Face Spaces requires UID 1000)
+# Non-root user for security (Hugging Face Spaces requires UID 1000).
+# Created BEFORE the COPYs so --chown can hand ownership over directly:
+# the server writes data/telemetry.db at runtime, which a root-owned
+# directory would make impossible (sqlite3 "unable to open database file").
 RUN useradd -m -u 1000 user
+
+# Copy application source, owned by the runtime user
+COPY --chown=user:user src/ ./src/
+COPY --chown=user:user data/ ./data/
+
+# /app itself must be writable for WAL sidecar files (-wal, -shm)
+RUN chown user:user /app
+
 USER user
 
 # Hugging Face Spaces port
@@ -39,7 +46,13 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')" || exit 1
 
 # Environment defaults
-ENV TRUEARCH_DATA_DIR=data/frameworks \
+#   TRUEARCH_ALLOWED_HOSTS=* — this is a public, read-only, unauthenticated
+#   server, so it must accept the deployment's own hostname (e.g. *.hf.space).
+#   The SDK's localhost-only default would 421 every remote MCP client while
+#   /health still returned 200, making the Space look silently broken.
+ENV TRUEARCH_DATA_DIR=/app/data/frameworks \
+    TRUEARCH_DB_PATH=/app/data/telemetry.db \
+    TRUEARCH_ALLOWED_HOSTS=* \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=7860 \

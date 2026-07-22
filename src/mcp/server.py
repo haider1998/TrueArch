@@ -29,6 +29,7 @@ from __future__ import annotations
 import sys
 import os
 import json
+from contextlib import asynccontextmanager
 from datetime import date
 from typing import Optional
 
@@ -37,6 +38,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from src.data.loader import FrameworkLoader
 from src.data.models import FrameworkSchema
@@ -75,6 +77,45 @@ _FRAMEWORK_IDS = sorted(_frameworks.keys())
 
 # ── FastMCP Server ────────────────────────────────────────────────────────────
 
+def _transport_security() -> TransportSecuritySettings:
+    """DNS-rebinding protection policy for the HTTP transport.
+
+    The MCP SDK defaults to allowing localhost only. That is the right default
+    for a server running on a developer's machine (it stops a malicious web page
+    from reaching their local MCP server), but it rejects every request with a
+    421 once the server is deployed behind a real hostname such as
+    *.hf.space — which is invisible in /health and looks like the server "just
+    doesn't work".
+
+    So the allowlist is configurable:
+        TRUEARCH_ALLOWED_HOSTS="example.com,foo.hf.space"   # explicit allowlist
+        TRUEARCH_ALLOWED_HOSTS="*"                          # public deployment
+    Unset keeps the safe localhost-only default.
+
+    "*" is a defensible setting for THIS server specifically: it is read-only,
+    unauthenticated, holds no user data or secrets, and serves a public curated
+    catalog. Do not copy this setting to a server that has any of those.
+    """
+    raw = os.environ.get("TRUEARCH_ALLOWED_HOSTS", "").strip()
+    if not raw:
+        return TransportSecuritySettings(
+            allowed_hosts=["127.0.0.1:*", "localhost:*", "[::1]:*"],
+            allowed_origins=["http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*"],
+        )
+    if raw == "*":
+        return TransportSecuritySettings(enable_dns_rebinding_protection=False)
+
+    hosts = [h.strip() for h in raw.split(",") if h.strip()]
+    return TransportSecuritySettings(
+        # Accept the bare host and any port, plus both schemes as an Origin.
+        allowed_hosts=[*hosts, *(f"{h}:*" for h in hosts)],
+        allowed_origins=[
+            *(f"{scheme}://{h}" for h in hosts for scheme in ("http", "https")),
+            *(f"{scheme}://{h}:*" for h in hosts for scheme in ("http", "https")),
+        ],
+    )
+
+
 mcp = FastMCP(
     name="truearch-intelligence",
     instructions=(
@@ -86,6 +127,10 @@ mcp = FastMCP(
     ),
     port=8001,
     stateless_http=True,
+    # Serve the transport at the mount root. FastMCP defaults this to "/mcp",
+    # which would become "/mcp/mcp" once the app is mounted at "/mcp" below.
+    streamable_http_path="/",
+    transport_security=_transport_security(),
 )
 
 def _clean_dict(d):
@@ -987,12 +1032,26 @@ def _build_http_app() -> FastAPI:
     Adds /health and /version endpoints required by Fly.io health checks
     and MCP client discovery.
     """
+    # Build the transport app first — this is what lazily creates the session
+    # manager that the lifespan below has to run.
+    mcp_app = mcp.streamable_http_app()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # Mounting an ASGI sub-app does NOT run that sub-app's lifespan, so the
+        # session manager's task group would never start and every /mcp request
+        # would fail with "Task group is not initialized. Make sure to use run()."
+        # Running it here is what makes the mounted transport actually work.
+        async with mcp.session_manager.run():
+            yield
+
     http_app = FastAPI(
         title="TrueArch MCP",
         description="Architecture intelligence layer for AI-native engineering.",
         version=_VERSION,
         docs_url=None,   # No Swagger UI on the MCP server
         redoc_url=None,
+        lifespan=lifespan,
     )
 
     # CORS — allow MCP clients from any origin (Cursor, Claude Code, Codex, etc.)
@@ -1051,8 +1110,9 @@ def _build_http_app() -> FastAPI:
             "frameworks_loaded": _FRAMEWORK_COUNT,
         })
 
-    # Mount the MCP server at /mcp — this is where all MCP traffic goes
-    http_app.mount("/mcp", mcp.streamable_http_app())
+    # Mount the MCP server at /mcp — this is where all MCP traffic goes.
+    # Combined with streamable_http_path="/", the endpoint is exactly /mcp.
+    http_app.mount("/mcp", mcp_app)
 
     return http_app
 

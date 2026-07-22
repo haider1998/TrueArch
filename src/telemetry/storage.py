@@ -1,45 +1,105 @@
+"""Local-only, privacy-preserving telemetry.
+
+Design rule: telemetry is a *nice-to-have*. It must NEVER be able to take the
+server down. Every entry point degrades to a no-op if the database can't be
+opened (read-only container, missing volume, permission mismatch), and the
+failure is reported once on stderr rather than raised.
+
+Resolution order for the DB location:
+  1. $TRUEARCH_DB_PATH            (explicit override; used by tests & deploys)
+  2. data/telemetry.db            (repo checkout / writable image)
+  3. $TMPDIR/truearch_telemetry.db (ephemeral fallback — containers)
+  4. disabled                     (everything else)
+"""
 import os
 import sqlite3
 import json
 import hashlib
+import sys
+import tempfile
 from collections import Counter
 from datetime import datetime, timezone
 from typing import List, Optional
 
+_SCHEMA = """
+    CREATE TABLE IF NOT EXISTS recommendation_outcomes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        query_hash TEXT NOT NULL,
+        genome_short TEXT,
+        framework_ids TEXT,
+        compliance TEXT,
+        scale TEXT,
+        priority TEXT
+    )
+"""
+
+# Resolved lazily on first use: None = not yet probed, "" = telemetry disabled.
+_resolved_path: Optional[str] = None
+_warned = False
+
+
+def _candidate_paths() -> List[str]:
+    """Candidate DB locations, most-preferred first."""
+    env = os.environ.get("TRUEARCH_DB_PATH")
+    if env:
+        # An explicit override is honored alone — never silently redirected.
+        return [env]
+    return [
+        "data/telemetry.db",
+        os.path.join(tempfile.gettempdir(), "truearch_telemetry.db"),
+    ]
+
+
+def _try_open(path: str) -> bool:
+    """Create the schema at `path`. True if the DB is usable."""
+    try:
+        parent = os.path.dirname(path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with sqlite3.connect(path, timeout=5) as conn:
+            # WAL: safe for concurrent readers + one writer (multi-worker uvicorn)
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute(_SCHEMA)
+            conn.commit()
+        return True
+    except (OSError, sqlite3.Error):
+        return False
+
 
 def _db_path() -> str:
-    """Resolve the telemetry DB path at call time so tests/env overrides apply."""
-    return os.environ.get("TRUEARCH_DB_PATH", "data/telemetry.db")
+    """Resolve (once) a writable DB path, or "" if telemetry is unavailable."""
+    global _resolved_path, _warned
+    if _resolved_path is not None:
+        return _resolved_path
+
+    for candidate in _candidate_paths():
+        if _try_open(candidate):
+            _resolved_path = candidate
+            return _resolved_path
+
+    _resolved_path = ""
+    if not _warned:
+        _warned = True
+        print(
+            "[TrueArch] Telemetry disabled: no writable database location "
+            f"(tried: {', '.join(_candidate_paths())}). "
+            "The server runs normally; only usage insights are unavailable.",
+            file=sys.stderr,
+        )
+    return _resolved_path
 
 
-def _init_db() -> None:
-    path = _db_path()
-    parent = os.path.dirname(path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    with sqlite3.connect(path) as conn:
-        # WAL mode: safe for concurrent readers + one writer (multi-worker uvicorn)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS recommendation_outcomes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL,
-                query_hash TEXT NOT NULL,
-                genome_short TEXT,
-                framework_ids TEXT,
-                compliance TEXT,
-                scale TEXT,
-                priority TEXT
-            )
-        """)
-        conn.commit()
+def reset_path_cache() -> None:
+    """Re-probe the DB location. Used by tests that monkeypatch TRUEARCH_DB_PATH."""
+    global _resolved_path, _warned
+    _resolved_path = None
+    _warned = False
 
 
-# Initialize DB on load (best-effort; read-only environments should not crash import)
-try:
-    _init_db()
-except OSError:
-    pass
+def telemetry_available() -> bool:
+    """Whether usage insights can be recorded in this environment."""
+    return bool(_db_path())
 
 
 def log_recommendation(
@@ -50,44 +110,58 @@ def log_recommendation(
     scale: str,
     priority: str
 ) -> None:
-    """Logs the outcomes of a recommendation for future flywheel analysis.
+    """Log a recommendation outcome for later flywheel analysis.
 
     Privacy: the raw problem text is never stored. Only a stable, non-reversible
     SHA-256 prefix is kept for dedup/volume analysis.
+
+    Never raises — a telemetry failure must not fail the caller's request.
     """
+    path = _db_path()
+    if not path:
+        return
+
     # Stable across processes (unlike builtin hash(), which is per-process salted)
     query_hash = hashlib.sha256((query_problem or "").encode("utf-8")).hexdigest()[:16]
 
-    timestamp = datetime.now(timezone.utc).isoformat()
-    frameworks_json = json.dumps(framework_ids)
-    compliance_json = json.dumps(compliance)
-
-    path = _db_path()
-    _init_db()
-    with sqlite3.connect(path) as conn:
-        conn.execute(
-            """
-            INSERT INTO recommendation_outcomes
-            (timestamp, query_hash, genome_short, framework_ids, compliance, scale, priority)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (timestamp, query_hash, genome_short, frameworks_json, compliance_json, scale, priority)
-        )
-        conn.commit()
-
-
-def _rows(top_n: int = 10) -> List[sqlite3.Row]:
-    path = _db_path()
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
     try:
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT * FROM recommendation_outcomes ORDER BY timestamp DESC"
-        )
-        return cur.fetchall()
-    finally:
-        conn.close()
+        with sqlite3.connect(path, timeout=5) as conn:
+            conn.execute(
+                """
+                INSERT INTO recommendation_outcomes
+                (timestamp, query_hash, genome_short, framework_ids, compliance, scale, priority)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    datetime.now(timezone.utc).isoformat(),
+                    query_hash,
+                    genome_short,
+                    json.dumps(framework_ids),
+                    json.dumps(compliance),
+                    scale,
+                    priority,
+                ),
+            )
+            conn.commit()
+    except (OSError, sqlite3.Error) as exc:
+        print(f"[TrueArch] Telemetry write skipped: {exc}", file=sys.stderr)
+
+
+def _rows() -> List[sqlite3.Row]:
+    path = _db_path()
+    if not path:
+        return []
+    try:
+        conn = sqlite3.connect(path, timeout=5)
+        conn.row_factory = sqlite3.Row
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM recommendation_outcomes ORDER BY timestamp DESC")
+            return cur.fetchall()
+        finally:
+            conn.close()
+    except (OSError, sqlite3.Error):
+        return []
 
 
 def get_insights(top_n: int = 10) -> dict:
@@ -98,21 +172,29 @@ def get_insights(top_n: int = 10) -> dict:
     (identified only by genome + hash — never raw problem text).
     """
     top_n = min(max(top_n, 1), 20)
-    path = _db_path()
 
-    if not os.path.exists(path):
+    if not telemetry_available():
         return {
             "total_queries": 0,
+            "telemetry_available": False,
             "note": (
-                "No telemetry recorded yet. Serve at least one recommendation "
-                "query for insights to populate."
+                "Telemetry is unavailable in this environment (no writable "
+                "database location). Set TRUEARCH_DB_PATH to a writable path "
+                "to enable usage insights. All other tools are unaffected."
             ),
         }
 
     rows = _rows()
     total = len(rows)
     if total == 0:
-        return {"total_queries": 0, "note": "Telemetry database is empty."}
+        return {
+            "total_queries": 0,
+            "telemetry_available": True,
+            "note": (
+                "No telemetry recorded yet. Serve at least one recommendation "
+                "query for insights to populate."
+            ),
+        }
 
     framework_counter: Counter = Counter()
     stack_counter: Counter = Counter()
@@ -162,6 +244,7 @@ def get_insights(top_n: int = 10) -> dict:
 
     return {
         "total_queries": total,
+        "telemetry_available": True,
         "queries_today": queries_today,
         "top_frameworks": [
             {"framework": f, "count": c}

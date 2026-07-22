@@ -1,6 +1,7 @@
 """Tests for the telemetry storage read/write path (Phase A1)."""
 import importlib
 import os
+from pathlib import Path
 
 import pytest
 
@@ -87,3 +88,76 @@ def test_mcp_tool_wrapper_returns_data(storage, monkeypatch):
     result = server_mod.get_telemetry_insights(top_n=5)
     assert result["total_queries"] == 1
     assert "error" not in result
+
+
+# ── Read-only / unwritable environments ──────────────────────────────────────
+# Regression guard for the Hugging Face Spaces crash: the container ran as UID
+# 1000 against a root-owned /app/data, so sqlite3 raised OperationalError
+# ("unable to open database file") at import time and killed the whole server.
+# sqlite3.Error is NOT an OSError, so a bare `except OSError` did not catch it.
+
+
+@pytest.fixture()
+def readonly_storage(tmp_path, monkeypatch):
+    """Point the telemetry DB at a directory that cannot be written to."""
+    locked = tmp_path / "locked"
+    locked.mkdir()
+    os.chmod(locked, 0o500)  # r-x — cannot create files inside
+    monkeypatch.setenv("TRUEARCH_DB_PATH", str(locked / "telemetry.db"))
+    import src.telemetry.storage as storage_mod
+    importlib.reload(storage_mod)
+    yield storage_mod
+    os.chmod(locked, 0o700)  # let pytest clean the tmp dir up
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+def test_importing_storage_never_raises_on_unwritable_db(readonly_storage):
+    """Importing telemetry must not crash the server (the HF Spaces regression)."""
+    assert readonly_storage.telemetry_available() is False
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+def test_logging_is_a_noop_when_db_unwritable(readonly_storage):
+    """A telemetry write failure must never propagate to the caller's request."""
+    readonly_storage.log_recommendation(
+        "q", "G", ["langgraph"], [], "startup", "speed"
+    )  # must not raise
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+def test_insights_reports_unavailable_rather_than_failing(readonly_storage):
+    insights = readonly_storage.get_insights()
+    assert insights["total_queries"] == 0
+    assert insights["telemetry_available"] is False
+    assert "TRUEARCH_DB_PATH" in insights["note"]
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+def test_falls_back_to_tmp_when_default_path_unwritable(tmp_path, monkeypatch):
+    """With no explicit override, an unwritable ./data must fall back to the temp dir.
+
+    This is what keeps telemetry working (rather than silently off) in a
+    container whose app directory is not writable by the runtime user.
+    """
+    import tempfile
+
+    fallback = Path(tempfile.gettempdir()) / "truearch_telemetry.db"
+    for suffix in ("", "-wal", "-shm"):
+        Path(str(fallback) + suffix).unlink(missing_ok=True)
+
+    monkeypatch.delenv("TRUEARCH_DB_PATH", raising=False)
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "data").mkdir()
+    os.chmod(tmp_path / "data", 0o500)  # r-x — ./data/telemetry.db is impossible
+
+    import src.telemetry.storage as storage_mod
+    importlib.reload(storage_mod)
+    try:
+        assert storage_mod.telemetry_available() is True
+        assert storage_mod._db_path() == str(fallback)
+        storage_mod.log_recommendation("q", "G", ["qdrant"], [], "startup", "speed")
+        assert storage_mod.get_insights()["total_queries"] == 1
+    finally:
+        os.chmod(tmp_path / "data", 0o700)
+        for suffix in ("", "-wal", "-shm"):
+            Path(str(fallback) + suffix).unlink(missing_ok=True)
